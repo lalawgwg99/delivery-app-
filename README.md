@@ -88,11 +88,11 @@ cd backend
 npm install
 ```
 
-#### 3. 設定 Gemini API Key
+#### 3. 設定  API Key
 
 ```bash
-npx wrangler secret put GEMINI_API_KEY
-# 輸入您的 Gemini API Key
+npx wrangler secret put API_KEY
+# 輸入您的  API Key
 ```
 
 #### 4. 部署後端
@@ -137,11 +137,10 @@ npx wrangler pages deploy out --project-name your-project-name
 
 ```bash
 # Windows
-./deploy.bat
+
 
 # Linux/Mac
-./deploy.sh
-```
+
 
 ## 📋 功能詳解
 
@@ -159,7 +158,7 @@ npx wrangler pages deploy out --project-name your-project-name
 - **智慧功能**：
   - 自動忽略條碼、價格、店內代碼
   - 模糊地址自動修正為正確行政區
-  - 從「家樂福五甲店」出發的順路排序
+  - 從「xxx五甲店」出發的順路排序
 
 ### 2. 備貨總表 PDF
 
