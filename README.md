@@ -1,6 +1,7 @@
 # RouteSnap - AI 智慧外送路徑規劃系統 by~德
 
 > 🚀 **一鍵拍照，AI 自動辨識訂單並規劃最佳配送路線**
+店端備貨人員，手機拍照不要用原況照片/出貨單拍照務必拍正，不要抖動/單據上印刷文字避免遮擋/手寫文字可能無法識別。
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-16.0-black)](https://nextjs.org/)
@@ -21,7 +22,7 @@ RouteSnap 是一個專為家電配送設計的智慧路徑規劃系統，透過 
 
 ## 🎯 使用場景
 
-### 店長端（Store Admin）
+### 店端（Store Admin）
 
 1. 📸 拍攝外送單照片（支援批量 2-6 張）
 2. ✅ AI 自動辨識並排序
@@ -68,7 +69,7 @@ RouteSnap 是一個專為家電配送設計的智慧路徑規劃系統，透過 
 - Node.js 18+
 - npm 或 yarn
 - Cloudflare 帳號
-- Google Gemini API Key
+- Google Gemini API Key (2.5 pro)
 
 ### 安裝步驟
 
