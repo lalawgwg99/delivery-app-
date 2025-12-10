@@ -10,11 +10,11 @@
 
 ## 📖 專案簡介
 
-RouteSnap 是一個專為家電配送設計的智慧路徑規劃系統，透過 AI 圖像識別技術，自動從外送單照片中提取訂單資訊，並為外送員規劃最佳配送順序。
+一個專為家電配送設計的智慧路徑規劃系統，透過 AI 圖像識別技術，自動從外送單照片中提取訂單資訊，並為外送員規劃最佳配送順序。
 
 ### ✨ 核心特點
 
-- 🤖 **AI 智慧辨識**：使用 Google Gemini 2.5 Flash 模型(可換 3 pro )，精準提取客戶姓名、電話、地址、商品資訊
+- 🤖 **AI 智慧辨識**：使用AI視圖模型，精準提取客戶姓名、電話、地址、商品資訊
 - 📦 **備貨總表生成**：一鍵產生 PDF 備貨清單，方便倉庫人員準備商品
 - 🗺️ **路徑優化**：自動排序配送地址，從「xxx五甲店」出發的最佳路線
 - 📱 **行動優先**：PWA 設計，支援手機拍照上傳，外送員可直接導航
@@ -59,7 +59,7 @@ RouteSnap 是一個專為家電配送設計的智慧路徑規劃系統，透過 
 
 - **Runtime**: Cloudflare Workers
 - **Framework**: Hono.js
-- **AI**: Google Gemini 2.0 Flash API
+- **AI**:  API
 - **儲存**: Cloudflare KV
 - **部署**: Wrangler CLI
 
@@ -70,7 +70,7 @@ RouteSnap 是一個專為家電配送設計的智慧路徑規劃系統，透過 
 - Node.js 18+
 - npm 或 yarn
 - Cloudflare 帳號
-- Google Gemini API Key (2.5 pro)
+-  API
 
 ### 安裝步驟
 
@@ -131,16 +131,6 @@ npm run build
 npx wrangler pages deploy out --project-name your-project-name
 ```
 
-### 一鍵部署腳本
-
-使用提供的部署腳本：
-
-```bash
-# Windows
-
-
-# Linux/Mac
-
 
 ## 📋 功能詳解
 
@@ -195,7 +185,7 @@ npx wrangler pages deploy out --project-name your-project-name
 
 - **iOS 風格**：圓角卡片、毛玻璃效果、流暢動畫
 - **響應式設計**：完美適配手機、平板、桌面
-- **深色模式**：（規劃中）
+- **深色模式**：（沒錢 規劃中）
 - **無障礙**：符合 WCAG 2.1 AA 標準
 
 ## 📊 資料結構
