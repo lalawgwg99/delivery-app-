@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, Smartphone, CheckCircle, Navigation, Phone } from 'lucide-react';
+import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, Smartphone, CheckCircle, Navigation, Phone, FileText } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 // 解決 Next.js 在 Strict Mode 下與拖曳套件的兼容性問題
 const StrictModeDroppable = ({ children, ...props }: any) => {
@@ -115,6 +117,83 @@ export default function StoreAdmin() {
   const driverLink = typeof window !== 'undefined' ? `${window.location.origin}/driver?id=${routeId}` : '';
   const shareToLine = () => {
     window.location.href = `https://line.me/R/msg/text/?今日外送單！%0A點擊導航：${encodeURIComponent(driverLink)}`;
+  };
+
+  // 生成備貨總表 PDF
+  const generatePickingListPDF = () => {
+    const doc = new jsPDF();
+
+    // 設定中文字體（使用內建字體）
+    doc.setFont('helvetica');
+
+    // 標題
+    doc.setFontSize(18);
+    doc.text('家樂福五甲店 - 備貨總表', 105, 20, { align: 'center' });
+
+    // 日期和訂單數
+    doc.setFontSize(10);
+    const today = new Date().toLocaleDateString('zh-TW');
+    doc.text(`日期: ${today}`, 20, 30);
+    doc.text(`訂單數: ${orders.length}`, 150, 30);
+
+    let yPosition = 40;
+
+    // 為每個客戶生成表格
+    orders.forEach((order, index) => {
+      // 檢查是否需要新頁面
+      if (yPosition > 250) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      // 客戶名稱
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${index + 1}. ${order.customer || '未命名客戶'}`, 20, yPosition);
+      yPosition += 7;
+
+      // 解析商品資訊
+      const items = order.items ? order.items.split(',').map((item: string) => {
+        const trimmed = item.trim();
+        // 嘗試解析 "商品名 x數量" 格式
+        const match = trimmed.match(/^(.+?)\s*[xX×]\s*(\d+)$/);
+        if (match) {
+          return [match[1].trim(), match[2]];
+        }
+        return [trimmed, '1'];
+      }) : [['無商品資訊', '0']];
+
+      // 商品表格
+      autoTable(doc, {
+        startY: yPosition,
+        head: [['商品名稱', '數量']],
+        body: items,
+        theme: 'grid',
+        headStyles: { fillColor: [66, 139, 202], fontSize: 10 },
+        styles: { fontSize: 9, cellPadding: 3 },
+        margin: { left: 25, right: 20 },
+        tableWidth: 'auto',
+      });
+
+      yPosition = (doc as any).lastAutoTable.finalY + 10;
+    });
+
+    // 總計
+    const totalItems = orders.reduce((sum, order) => {
+      const items = order.items ? order.items.split(',') : [];
+      const quantities = items.map((item: string) => {
+        const match = item.match(/[xX×]\s*(\d+)/);
+        return match ? parseInt(match[1]) : 1;
+      });
+      return sum + quantities.reduce((a: number, b: number) => a + b, 0);
+    }, 0);
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`總計: ${orders.length} 位客戶, ${totalItems} 件商品`, 105, yPosition, { align: 'center' });
+
+    // 下載 PDF
+    doc.save(`備貨總表_${today}.pdf`);
   };
 
   return (
@@ -353,6 +432,13 @@ export default function StoreAdmin() {
                   className="px-4 py-3.5 rounded-xl font-bold text-gray-600 bg-gray-100 active:bg-gray-200 transition-colors"
                 >
                   重來
+                </button>
+                <button
+                  onClick={generatePickingListPDF}
+                  className="px-4 py-3.5 rounded-xl font-bold text-blue-600 bg-blue-50 active:bg-blue-100 transition-colors flex items-center gap-2"
+                >
+                  <FileText className="w-5 h-5" />
+                  備貨總表
                 </button>
                 <button
                   onClick={createLink}
