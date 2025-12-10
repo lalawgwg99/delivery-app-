@@ -264,7 +264,7 @@ export default function StoreAdmin() {
                   </tr>
                 </thead>
                 <tbody>
-                  ${items.map(item => `
+                  ${items.map((item: { name: string; quantity: string }) => `
                     <tr>
                       <td>${item.name}</td>
                       <td class="quantity">${item.quantity}</td>
