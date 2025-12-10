@@ -141,6 +141,15 @@ function DriverContent() {
                                 </div>
                             )}
 
+                            {/* 商品資訊 */}
+                            {order.items && (
+                                <div className="bg-blue-50 px-3 py-2 rounded-lg mb-3">
+                                    <p className="text-sm font-medium text-blue-900">
+                                        📦 {order.items}
+                                    </p>
+                                </div>
+                            )}
+
                             {/* 地址 */}
                             <div
                                 onClick={() => !isDone && openMap(order.address)}
@@ -166,13 +175,15 @@ function DriverContent() {
                                         <Navigation className="w-4 h-4 fill-current" />
                                         開啟導航
                                     </button>
-                                    <button
-                                        onClick={() => setViewingImage(order.sourceImage || '示範圖片')}
-                                        className="bg-gray-50 text-gray-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors active:scale-95"
-                                    >
-                                        <FileText className="w-4 h-4" />
-                                        看單
-                                    </button>
+                                    {order.imageKey && (
+                                        <button
+                                            onClick={() => setViewingImage(order.imageKey)}
+                                            className="bg-gray-50 text-gray-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors active:scale-95"
+                                        >
+                                            <FileText className="w-4 h-4" />
+                                            看單
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -186,20 +197,25 @@ function DriverContent() {
                     className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
                     onClick={() => setViewingImage(null)}
                 >
-                    <div className="relative max-w-2xl w-full bg-white rounded-2xl p-4 animate-in zoom-in duration-200">
+                    <div className="relative max-w-4xl w-full bg-white rounded-2xl p-4 animate-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                         <button
                             onClick={() => setViewingImage(null)}
-                            className="absolute top-2 right-2 bg-gray-900/80 text-white p-2 rounded-full hover:bg-gray-900 transition-colors"
+                            className="absolute top-2 right-2 bg-gray-900/80 text-white p-2 rounded-full hover:bg-gray-900 transition-colors z-10"
                         >
                             <X className="w-5 h-5" />
                         </button>
                         <div className="text-center">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">外送單原圖</h3>
-                            <div className="bg-gray-100 rounded-xl p-8 flex items-center justify-center min-h-[300px]">
-                                <p className="text-gray-500">
-                                    📄 {viewingImage}<br />
-                                    <span className="text-sm">(圖片儲存功能開發中)</span>
-                                </p>
+                            <div className="bg-gray-100 rounded-xl overflow-hidden">
+                                <img
+                                    src={`${API_URL}/api/image/${viewingImage}`}
+                                    alt="外送單原圖"
+                                    className="w-full h-auto max-h-[70vh] object-contain"
+                                    onError={(e) => {
+                                        e.currentTarget.src = '';
+                                        e.currentTarget.alt = '圖片載入失敗';
+                                    }}
+                                />
                             </div>
                         </div>
                     </div>

@@ -60,13 +60,12 @@ app.post('/api/analyze', async (c) => {
       2. 電話 (Telephone)
       3. 地址 (Address) - (起點定位為家樂福五甲店)，請做順路排序。若模糊請修正為正確行政區。
       4. 配送時間 (Delivery Time)
-      5. 單品名稱 (Item Name)
+      5. 商品名稱與數量 (Product Name and Quantity) - 格式：「商品名稱 x數量」，多項用逗號分隔
       6. 訂貨編號 (Order Number)
       7. 發票號碼 (Invoice Number)
 
       請直接回傳純 JSON 格式，不要 Markdown。
-      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "...", "orderNumber": "...", "invoiceNumber": "...", "note": "..." } ] }`;
-
+      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "商品A x2, 商品B x1", "orderNumber": "...", "invoiceNumber": "...", "note": "..." } ] }`;
 
 		const result = await model.generateContent([
 			prompt,
@@ -116,7 +115,15 @@ app.post('/api/analyze', async (c) => {
 
 		console.log('✨ Successfully parsed', data.orders.length, 'orders');
 
+		// 將圖片 base64 加入每個訂單（用於後續存儲）
+		const imageDataUrl = `data:${image.type};base64,${base64Image}`;
+		data.orders = data.orders.map((order: any) => ({
+			...order,
+			sourceImageData: imageDataUrl
+		}));
+
 		return c.json({ success: true, data });
+
 	} catch (e: any) {
 		console.error('💥 Error in /api/analyze:', e);
 		return c.json({
@@ -132,6 +139,25 @@ app.post('/api/create-route', async (c) => {
 	const body = await c.req.json();
 	const routeId = crypto.randomUUID().split('-')[0];
 
+	// 處理圖片儲存
+	if (body.orders && Array.isArray(body.orders)) {
+		for (let i = 0; i < body.orders.length; i++) {
+			const order = body.orders[i];
+			if (order.sourceImageData) {
+				// 為每個訂單生成唯一的圖片 key
+				const imageKey = `img_${routeId}_${i}`;
+				// 儲存圖片到 KV
+				await c.env.ORDERS_DB.put(imageKey, order.sourceImageData);
+				// 將 key 存入訂單，移除 base64 數據以減少存儲
+				body.orders[i] = {
+					...order,
+					imageKey,
+					sourceImageData: undefined
+				};
+			}
+		}
+	}
+
 	// 存入 KV (保存 24 小時)
 	await c.env.ORDERS_DB.put(routeId, JSON.stringify(body), { expirationTtl: 86400 });
 
@@ -145,6 +171,39 @@ app.get('/api/route/:id', async (c) => {
 
 	if (!data) return c.json({ error: '訂單不存在' }, 404);
 	return c.json(JSON.parse(data));
+});
+
+// 4. 讀取圖片
+app.get('/api/image/:key', async (c) => {
+	const imageKey = c.req.param('key');
+	const imageData = await c.env.ORDERS_DB.get(imageKey);
+
+	if (!imageData) {
+		return c.json({ error: '圖片不存在' }, 404);
+	}
+
+	// 解析 data URL
+	const matches = imageData.match(/^data:(.+);base64,(.+)$/);
+	if (!matches) {
+		return c.json({ error: '圖片格式錯誤' }, 500);
+	}
+
+	const mimeType = matches[1];
+	const base64Data = matches[2];
+
+	// 將 base64 轉換為 binary
+	const binaryString = atob(base64Data);
+	const bytes = new Uint8Array(binaryString.length);
+	for (let i = 0; i < binaryString.length; i++) {
+		bytes[i] = binaryString.charCodeAt(i);
+	}
+
+	return new Response(bytes, {
+		headers: {
+			'Content-Type': mimeType,
+			'Cache-Control': 'public, max-age=86400'
+		}
+	});
 });
 
 export default app;
