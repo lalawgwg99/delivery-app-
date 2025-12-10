@@ -274,7 +274,7 @@ export default function StoreAdmin() {
           返回主頁面生成派單連結
         </div>
         
-        <h1>家樂福五甲店 - 備貨總表</h1>
+        <h1>備貨總表</h1>
         <div class="header-info">
           日期：${today} | 訂單數：${orders.length}
         </div>

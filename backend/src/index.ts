@@ -58,7 +58,7 @@ app.post('/api/analyze', async (c) => {
       請「專注提取」以下欄位：
       1. 客戶名 (Customer Name)
       2. 電話 (Telephone)
-      3. 地址 (Address) - (起點定位為家樂福五甲店)，請做順路排序。若模糊請修正為正確行政區。
+      3. 地址 (Address) - (從配送起點出發)，請做順路排序。若模糊請修正為正確行政區。
       4. 配送時間 (Delivery Time)
       5. 商品名稱與數量 (Product Name and Quantity) - 格式：「商品名稱 x數量」，多項用逗號分隔
       6. 訂貨編號 (Order Number)
