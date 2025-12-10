@@ -225,17 +225,54 @@ export default function StoreAdmin() {
             cursor: pointer;
             font-size: 16px;
             font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
           }
           .print-button:hover {
             background: #3071a9;
           }
+          .close-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 12px 24px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          }
+          .close-button:hover {
+            background: #5a6268;
+          }
+          .instruction {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #856404;
+            max-width: 300px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          }
           @media print {
-            .print-button { display: none; }
+            .print-button, .close-button, .instruction { display: none; }
           }
         </style>
       </head>
       <body>
+        <button class="close-button" onclick="window.close()">← 關閉視窗</button>
         <button class="print-button" onclick="window.print()">🖨️ 列印 / 儲存 PDF</button>
+        <div class="instruction">
+          💡 <strong>提示：</strong><br>
+          列印完成後，請關閉此視窗<br>
+          返回主頁面生成派單連結
+        </div>
         
         <h1>家樂福五甲店 - 備貨總表</h1>
         <div class="header-info">
