@@ -1,0 +1,13 @@
+{
+	"name": "routesnap-backend",
+	"main": "src/index.ts",
+	"compatibility_date": "2024-12-09",
+	// 這裡設定資料庫
+	"kv_namespaces": [
+		{
+			"binding": "ORDERS_DB",
+			"id": "8a6a1167b9244750a20602370ce8e086",
+			"preview_id": "8a6a1167b9244750a20602370ce8e086"
+		}
+	]
+}

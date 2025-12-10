@@ -1,0 +1,222 @@
+'use client';
+
+import { useEffect, useState, Suspense } from 'react';
+import { MapPin, CheckCircle, Navigation, Phone, FileText, X } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+
+function DriverContent() {
+    const searchParams = useSearchParams();
+    const id = searchParams.get('id');
+    const [orders, setOrders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [viewingImage, setViewingImage] = useState<string | null>(null);
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+    useEffect(() => {
+        if (!id || !API_URL) return;
+        fetch(`${API_URL}/api/route/${id}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.orders) {
+                    const loadedOrders = data.orders.map((o: any) => ({
+                        ...o,
+                        status: 'pending' // 預設狀態
+                    }));
+                    setOrders(loadedOrders);
+                }
+                setLoading(false);
+            })
+            .catch(() => {
+                alert('訂單讀取錯誤');
+                setLoading(false);
+            });
+    }, [id, API_URL]);
+
+    const openMap = (address: string) => {
+        window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+    };
+
+    const makeCall = (phone: string) => {
+        if (!phone) return;
+        window.location.href = `tel:${phone}`;
+    };
+
+    const toggleStatus = (index: number) => {
+        const newOrders = [...orders];
+        newOrders[index].status = newOrders[index].status === 'pending' ? 'done' : 'pending';
+        setOrders(newOrders);
+    };
+
+    if (loading) return (
+        <div className="flex flex-col items-center justify-center min-h-screen text-gray-500 gap-3">
+            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            <p>正在載入訂單...</p>
+        </div>
+    );
+
+    if (orders.length === 0) return <div className="p-8 text-center text-gray-500">此連結無效或訂單已過期</div>;
+
+    const doneCount = orders.filter(o => o.status === 'done').length;
+    const progress = Math.round((doneCount / orders.length) * 100);
+
+    return (
+        <div className="min-h-screen bg-[#F2F4F6] p-4 max-w-md mx-auto font-sans pb-10">
+            {/* 頂部進度條 */}
+            <div className="bg-white px-5 py-4 rounded-2xl shadow-sm mb-5 sticky top-2 z-20 border border-gray-100/50 backdrop-blur-md bg-white/90">
+                <div className="flex justify-between items-end mb-2">
+                    <div>
+                        <h1 className="text-xl font-black text-gray-800">🛵 今日配送</h1>
+                        <p className="text-xs text-gray-400 mt-0.5">還有 {orders.length - doneCount} 單待送</p>
+                    </div>
+                    <span className="text-2xl font-black text-blue-600">{progress}<span className="text-sm">%</span></span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                    <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-500 ease-out"
+                        style={{ width: `${progress}%` }}
+                    ></div>
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                {orders.map((order, i) => {
+                    const isDone = order.status === 'done';
+                    return (
+                        <div
+                            key={i}
+                            className={`relative p-5 rounded-2xl transition-all duration-300 border ${isDone
+                                ? 'bg-gray-100 border-transparent opacity-60 scale-[0.98]'
+                                : 'bg-white shadow-sm border-gray-100 scale-100'
+                                }`}
+                        >
+                            {/* 頂部：序號、客戶名稱、完成按鈕 */}
+                            <div className="flex justify-between items-start mb-3">
+                                <div className="flex items-center gap-3">
+                                    <span className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold shadow-sm ${isDone ? 'bg-gray-300 text-white' : 'bg-blue-600 text-white'
+                                        }`}>
+                                        {i + 1}
+                                    </span>
+                                    <div>
+                                        <span className={`font-bold text-lg ${isDone ? 'text-gray-500' : 'text-gray-800'}`}>
+                                            {order.customer || '客戶'}
+                                        </span>
+                                        {/* 電話號碼 - 可點擊撥打 */}
+                                        {order.phone && (
+                                            <button
+                                                onClick={() => makeCall(order.phone)}
+                                                className="flex items-center gap-1 mt-1 text-sm text-blue-600 hover:text-blue-700 active:scale-95 transition-all"
+                                            >
+                                                <Phone className="w-3.5 h-3.5" />
+                                                <span>{order.phone}</span>
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => toggleStatus(i)}
+                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold transition-colors ${isDone
+                                        ? 'bg-green-100 text-green-700'
+                                        : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-600'
+                                        }`}
+                                >
+                                    <CheckCircle className="w-4 h-4" />
+                                    {isDone ? '已完成' : '標記完成'}
+                                </button>
+                            </div>
+
+                            {/* 訂單編號與發票號碼 */}
+                            {(order.orderNumber || order.invoiceNumber) && (
+                                <div className="flex gap-2 mb-3 text-xs">
+                                    {order.orderNumber && (
+                                        <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">
+                                            單號: {order.orderNumber}
+                                        </span>
+                                    )}
+                                    {order.invoiceNumber && (
+                                        <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
+                                            發票: {order.invoiceNumber}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* 地址 */}
+                            <div
+                                onClick={() => !isDone && openMap(order.address)}
+                                className="flex items-start gap-2.5 mb-4 pl-1 cursor-pointer group"
+                            >
+                                <MapPin className={`w-5 h-5 mt-0.5 flex-shrink-0 transition-colors ${isDone ? 'text-gray-400' : 'text-red-500 group-hover:scale-110'}`} />
+                                <div className="flex-1">
+                                    <p className={`text-[17px] leading-snug font-medium transition-colors ${isDone ? 'text-gray-500 line-through decoration-gray-400' : 'text-gray-800 group-hover:text-blue-600'
+                                        }`}>
+                                        {order.address}
+                                    </p>
+                                    {order.note && <p className="text-sm text-orange-500 mt-1">{order.note}</p>}
+                                </div>
+                            </div>
+
+                            {/* 操作按鈕區 */}
+                            {!isDone && (
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        onClick={() => openMap(order.address)}
+                                        className="bg-blue-50 text-blue-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-100 transition-colors active:scale-95"
+                                    >
+                                        <Navigation className="w-4 h-4 fill-current" />
+                                        開啟導航
+                                    </button>
+                                    <button
+                                        onClick={() => setViewingImage(order.sourceImage || '示範圖片')}
+                                        className="bg-gray-50 text-gray-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors active:scale-95"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        看單
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* 圖片查看彈窗 */}
+            {viewingImage && (
+                <div
+                    className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => setViewingImage(null)}
+                >
+                    <div className="relative max-w-2xl w-full bg-white rounded-2xl p-4 animate-in zoom-in duration-200">
+                        <button
+                            onClick={() => setViewingImage(null)}
+                            className="absolute top-2 right-2 bg-gray-900/80 text-white p-2 rounded-full hover:bg-gray-900 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <div className="text-center">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">外送單原圖</h3>
+                            <div className="bg-gray-100 rounded-xl p-8 flex items-center justify-center min-h-[300px]">
+                                <p className="text-gray-500">
+                                    📄 {viewingImage}<br />
+                                    <span className="text-sm">(圖片儲存功能開發中)</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="text-center mt-8 text-gray-300 text-xs font-mono">
+                Powered by RouteSnap AI
+            </div>
+        </div>
+    );
+}
+
+export default function DriverView() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+            <DriverContent />
+        </Suspense>
+    );
+}
