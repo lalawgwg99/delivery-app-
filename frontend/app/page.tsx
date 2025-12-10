@@ -3,8 +3,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, Smartphone, CheckCircle, Navigation, Phone, FileText } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 // 解決 Next.js 在 Strict Mode 下與拖曳套件的兼容性問題
 const StrictModeDroppable = ({ children, ...props }: any) => {
@@ -119,66 +117,11 @@ export default function StoreAdmin() {
     window.location.href = `https://line.me/R/msg/text/?今日外送單！%0A點擊導航：${encodeURIComponent(driverLink)}`;
   };
 
-  // 生成備貨總表 PDF
+  // 生成備貨總表（使用瀏覽器列印功能，完美支援中文）
   const generatePickingListPDF = () => {
-    const doc = new jsPDF();
-
-    // 設定中文字體（使用內建字體）
-    doc.setFont('helvetica');
-
-    // 標題
-    doc.setFontSize(18);
-    doc.text('家樂福五甲店 - 備貨總表', 105, 20, { align: 'center' });
-
-    // 日期和訂單數
-    doc.setFontSize(10);
     const today = new Date().toLocaleDateString('zh-TW');
-    doc.text(`日期: ${today}`, 20, 30);
-    doc.text(`訂單數: ${orders.length}`, 150, 30);
 
-    let yPosition = 40;
-
-    // 為每個客戶生成表格
-    orders.forEach((order, index) => {
-      // 檢查是否需要新頁面
-      if (yPosition > 250) {
-        doc.addPage();
-        yPosition = 20;
-      }
-
-      // 客戶名稱
-      doc.setFontSize(12);
-      doc.setFont('helvetica', 'bold');
-      doc.text(`${index + 1}. ${order.customer || '未命名客戶'}`, 20, yPosition);
-      yPosition += 7;
-
-      // 解析商品資訊
-      const items = order.items ? order.items.split(',').map((item: string) => {
-        const trimmed = item.trim();
-        // 嘗試解析 "商品名 x數量" 格式
-        const match = trimmed.match(/^(.+?)\s*[xX×]\s*(\d+)$/);
-        if (match) {
-          return [match[1].trim(), match[2]];
-        }
-        return [trimmed, '1'];
-      }) : [['無商品資訊', '0']];
-
-      // 商品表格
-      autoTable(doc, {
-        startY: yPosition,
-        head: [['商品名稱', '數量']],
-        body: items,
-        theme: 'grid',
-        headStyles: { fillColor: [66, 139, 202], fontSize: 10 },
-        styles: { fontSize: 9, cellPadding: 3 },
-        margin: { left: 25, right: 20 },
-        tableWidth: 'auto',
-      });
-
-      yPosition = (doc as any).lastAutoTable.finalY + 10;
-    });
-
-    // 總計
+    // 計算總商品數
     const totalItems = orders.reduce((sum, order) => {
       const items = order.items ? order.items.split(',') : [];
       const quantities = items.map((item: string) => {
@@ -188,12 +131,160 @@ export default function StoreAdmin() {
       return sum + quantities.reduce((a: number, b: number) => a + b, 0);
     }, 0);
 
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`總計: ${orders.length} 位客戶, ${totalItems} 件商品`, 105, yPosition, { align: 'center' });
+    // 創建列印視窗
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      alert('請允許彈出視窗以生成備貨總表');
+      return;
+    }
 
-    // 下載 PDF
-    doc.save(`備貨總表_${today}.pdf`);
+    // 生成 HTML 內容
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>備貨總表_${today}</title>
+        <style>
+          @media print {
+            @page { margin: 1cm; }
+            body { margin: 0; }
+          }
+          body {
+            font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+          }
+          h1 {
+            text-align: center;
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+          }
+          .header-info {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+          }
+          .customer-section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+          }
+          .customer-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: #f5f5f5;
+            border-left: 4px solid #428bca;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+          }
+          th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+          }
+          th {
+            background-color: #428bca;
+            color: white;
+            font-weight: bold;
+          }
+          td {
+            background-color: white;
+          }
+          .quantity {
+            text-align: center;
+            font-weight: bold;
+            color: #428bca;
+          }
+          .footer {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f8f9fa;
+            border: 2px solid #428bca;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+          }
+          .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #428bca;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+          }
+          .print-button:hover {
+            background: #3071a9;
+          }
+          @media print {
+            .print-button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <button class="print-button" onclick="window.print()">🖨️ 列印 / 儲存 PDF</button>
+        
+        <h1>家樂福五甲店 - 備貨總表</h1>
+        <div class="header-info">
+          日期：${today} | 訂單數：${orders.length}
+        </div>
+
+        ${orders.map((order, index) => {
+      // 解析商品
+      const items = order.items ? order.items.split(',').map((item: string) => {
+        const trimmed = item.trim();
+        const match = trimmed.match(/^(.+?)\s*[xX×]\s*(\d+)$/);
+        if (match) {
+          return { name: match[1].trim(), quantity: match[2] };
+        }
+        return { name: trimmed, quantity: '1' };
+      }) : [{ name: '無商品資訊', quantity: '0' }];
+
+      return `
+            <div class="customer-section">
+              <div class="customer-name">${index + 1}. ${order.customer || '未命名客戶'}</div>
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 70%">商品名稱</th>
+                    <th style="width: 30%">數量</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${items.map(item => `
+                    <tr>
+                      <td>${item.name}</td>
+                      <td class="quantity">${item.quantity}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+    }).join('')}
+
+        <div class="footer">
+          總計：${orders.length} 位客戶，${totalItems} 件商品
+        </div>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
   };
 
   return (
