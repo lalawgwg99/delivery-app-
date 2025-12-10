@@ -246,26 +246,12 @@ npx wrangler pages deploy out --project-name your-project-name
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 開啟 Pull Request
 
-## 📝 授權
 
-本專案採用 MIT 授權 - 詳見 [LICENSE](LICENSE) 文件
 
 ## 👨‍💻 開發者
 
 **榮德** - 初始開發與設計
 
-## 🙏 致謝
-
-- [Google Gemini](https://ai.google.dev/) - AI 圖像識別
-- [Cloudflare](https://www.cloudflare.com/) - 基礎設施
-- [Next.js](https://nextjs.org/) - 前端框架
-- [Hono](https://hono.dev/) - 後端框架
-
-## 📞 聯絡方式
-
-如有任何問題或建議，歡迎聯絡：
-
-- GitHub Issues: [提交問題](https://github.com/lalawgwg99/delivery-app-/issues)
 
 ---
 
