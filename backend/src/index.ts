@@ -346,8 +346,8 @@ app.post('/api/upload-delivery-photo', async (c) => {
 		const list = await c.env.ORDERS_DB.list({ prefix });
 		const photoCount = list.keys.length;
 
-		if (photoCount >= 8) {
-			return c.json({ success: false, error: '已達照片上限 (8張)' }, 400);
+		if (photoCount >= 16) {
+			return c.json({ success: false, error: '已達照片上限 (16張)' }, 400);
 		}
 
 		// 儲存照片

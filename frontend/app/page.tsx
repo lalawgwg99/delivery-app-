@@ -54,8 +54,8 @@ export default function StoreAdmin() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    if (files.length > 6) {
-      alert('最多只能上傳 6 張圖片');
+    if (files.length > 16) {
+      alert('最多只能上傳 16 張圖片');
       return;
     }
 
@@ -409,7 +409,7 @@ export default function StoreAdmin() {
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">拍攝訂單</h3>
                 <p className="text-gray-400 text-sm leading-relaxed">
-                  開啟相機或上傳圖片<br />支援批量上傳 2-6 張<br />AI 自動辨識地址並排序
+                  開啟相機或上傳圖片<br />支援批量上傳 2-16 張<br />AI 自動辨識地址並排序
                 </p>
               </div>
             )}
@@ -442,7 +442,7 @@ export default function StoreAdmin() {
                 <div>
                   <h4 className="font-bold text-gray-900 mb-1">1. 拍攝訂單</h4>
                   <p className="text-sm text-gray-500 leading-relaxed">
-                    點擊上方相機圖示，一次可選 <span className="text-blue-600 font-bold">2-6 張</span> 照片。AI 會自動辨識地址並排序。
+                    點擊上方相機圖示，一次可選 <span className="text-blue-600 font-bold">2-16 張</span> 照片。AI 會自動辨識地址並排序。
                   </p>
                 </div>
               </div>
