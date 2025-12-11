@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, FileText } from 'lucide-react';
+import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, FileText, Github } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { compressImage } from '../utils/image-compression';
 
 // 解決 Next.js 在 Strict Mode 下與拖曳套件的兼容性問題
 const StrictModeDroppable = ({ children, ...props }: any) => {
@@ -44,9 +45,28 @@ export default function StoreAdmin() {
   }, []);
 
   // LocalStorage 暫存：自動儲存
+  // LocalStorage 暫存：自動儲存
   useEffect(() => {
     if (orders.length > 0 && !routeId) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+      } catch (e: any) {
+        console.warn('LocalStorage Quota Exceeded, trying to save without images...');
+        // 如果空間不足 (QuotaExceededError)，則嘗試只存文字資料 (移除圖片 base64)
+        if (e.name === 'QuotaExceededError' || e.code === 22 || e.code === 1014) {
+          try {
+            const liteOrders = orders.map(o => {
+              // 移除 sourceImageData 和其他可能的圖片欄位
+              const { sourceImageData, ...rest } = o;
+              return rest;
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(liteOrders));
+            console.log('Saved lite version (text only) to LocalStorage');
+          } catch (retryError) {
+            console.error('Failed to save even lite version:', retryError);
+          }
+        }
+      }
     }
   }, [orders, routeId]);
 
@@ -67,8 +87,17 @@ export default function StoreAdmin() {
     for (let i = 0; i < files.length; i++) {
       setProcessingIndex(i);
       const file = files[i];
+
+      // 1. 執行壓縮
+      let processedFile = file;
+      try {
+        processedFile = await compressImage(file);
+      } catch (e) {
+        console.error('Compression failed, using original file', e);
+      }
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', processedFile);
 
       try {
         const res = await fetch(`${API_URL}/api/analyze`, { method: 'POST', body: formData });
@@ -372,14 +401,6 @@ export default function StoreAdmin() {
                 WG五甲
               </span>
             </div>
-            <a
-              href="https://github.com/lalawgwg99/delivery-app-"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[11px] text-gray-400 hover:text-blue-500 transition-colors"
-            >
-              GitHub
-            </a>
           </div>
         </div>
       </header>
@@ -472,6 +493,24 @@ export default function StoreAdmin() {
                   </p>
                 </div>
               </div>
+
+              {/* GitHub 連結 */}
+              <a
+                href="https://github.com/lalawgwg99/delivery-app-"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer mt-2"
+              >
+                <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0 text-white">
+                  <Github className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-900 mb-1">GitHub 開源專案</h4>
+                  <p className="text-sm text-gray-500 leading-relaxed">
+                    查看原始碼與說明文件
+                  </p>
+                </div>
+              </a>
             </div>
 
             <div className="mt-8 text-center">
@@ -608,17 +647,6 @@ export default function StoreAdmin() {
                   >
                     <Camera className="w-5 h-5" />
                     ➕ 追加上傳
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('確定要清除所有訂單並重新開始嗎？')) {
-                        localStorage.removeItem(STORAGE_KEY);
-                        window.location.reload();
-                      }
-                    }}
-                    className="px-4 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 active:bg-gray-200 transition-colors"
-                  >
-                    🗑️ 清除
                   </button>
                 </div>
                 {/* 下排：備貨總表 + 生成連結 */}
