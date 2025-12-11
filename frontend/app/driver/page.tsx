@@ -12,7 +12,7 @@ function DriverContent() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewingImage, setViewingImage] = useState<string | null>(null);
-    const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+    const [uploadingStates, setUploadingStates] = useState<Record<number, boolean>>({});
     const [viewingDeliveryPhotos, setViewingDeliveryPhotos] = useState<{ orderIndex: number; photos: string[] } | null>(null);
     const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
@@ -47,9 +47,19 @@ function DriverContent() {
 
     // 上傳送達照片
     // 上傳送達照片
+    // Set loading helper
+    const setUploading = (index: number, isUploading: boolean) => {
+        setUploadingStates(prev => ({ ...prev, [index]: isUploading }));
+    };
+
+    // 上傳送達照片
     const uploadDeliveryPhoto = async (orderIndex: number, file: File) => {
         if (!id) return;
-        setUploadingIndex(orderIndex);
+
+        // Prevent accidental double upload for same order if already uploading
+        if (uploadingStates[orderIndex]) return;
+
+        setUploading(orderIndex, true);
 
         const formData = new FormData();
         formData.append('image', file);
@@ -72,15 +82,21 @@ function DriverContent() {
             if (data.success) {
                 // 使用 functional update 確保取得最新 state
                 setOrders(prevOrders => {
+                    // Safety check if orders array is valid
+                    if (!Array.isArray(prevOrders)) return [];
+
                     const newOrders = [...prevOrders];
                     // 確保該索引存在，避免崩潰
                     if (newOrders[orderIndex]) {
+                        // Force number type for calculations
+                        const photoCount = Number(data.totalPhotos) || 0;
+
                         newOrders[orderIndex] = {
                             ...newOrders[orderIndex],
-                            deliveryPhotoCount: data.totalPhotos
+                            deliveryPhotoCount: photoCount
                         };
 
-                        if (data.totalPhotos >= 2) {
+                        if (photoCount >= 2) {
                             newOrders[orderIndex].status = 'done';
                         }
                     }
@@ -93,7 +109,7 @@ function DriverContent() {
             console.error('Upload error:', e);
             alert('上傳失敗，請重試');
         } finally {
-            setUploadingIndex(null);
+            setUploading(orderIndex, false);
         }
     };
 
@@ -155,9 +171,10 @@ function DriverContent() {
 
             <div className="space-y-4">
                 {orders.map((order, i) => {
+                    if (!order) return null; // Render guard
                     const isDone = order.status === 'done';
-                    const photoCount = order.deliveryPhotoCount || 0;
-                    const isUploading = uploadingIndex === i;
+                    const photoCount = Number(order.deliveryPhotoCount) || 0;
+                    const isUploading = uploadingStates[i] || false;
 
                     return (
                         <div
