@@ -52,62 +52,68 @@ function DriverContent() {
         setUploadingStates(prev => ({ ...prev, [index]: isUploading }));
     };
 
-    // 上傳送達照片
-    const uploadDeliveryPhoto = async (orderIndex: number, file: File) => {
-        if (!id) return;
+    // 批量上傳送達照片
+    const uploadDeliveryPhotosBatch = async (orderIndex: number, files: FileList) => {
+        if (!id || files.length === 0) return;
 
-        // Prevent accidental double upload for same order if already uploading
+        // Prevent double upload
         if (uploadingStates[orderIndex]) return;
 
         setUploading(orderIndex, true);
 
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('routeId', id);
-        formData.append('orderIndex', String(orderIndex));
+        let currentSuccessCount = 0;
 
         try {
-            const res = await fetch(`${API_URL}/api/upload-delivery-photo`, {
-                method: 'POST',
-                body: formData
-            });
+            // 依序上傳每一張 (Sequential Upload)
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('routeId', id);
+                formData.append('orderIndex', String(orderIndex));
 
-            // 先檢查回應狀態
-            if (!res.ok) {
-                throw new Error(`Server error: ${res.status}`);
-            }
+                try {
+                    const res = await fetch(`${API_URL}/api/upload-delivery-photo`, {
+                        method: 'POST',
+                        body: formData
+                    });
 
-            const data = await res.json();
+                    if (!res.ok) throw new Error(`Status ${res.status}`);
 
-            if (data.success) {
-                // 使用 functional update 確保取得最新 state
-                setOrders(prevOrders => {
-                    // Safety check if orders array is valid
-                    if (!Array.isArray(prevOrders)) return [];
+                    const data = await res.json();
 
-                    const newOrders = [...prevOrders];
-                    // 確保該索引存在，避免崩潰
-                    if (newOrders[orderIndex]) {
-                        // Force number type for calculations
-                        const photoCount = Number(data.totalPhotos) || 0;
-
-                        newOrders[orderIndex] = {
-                            ...newOrders[orderIndex],
-                            deliveryPhotoCount: photoCount
-                        };
-
-                        if (photoCount >= 2) {
-                            newOrders[orderIndex].status = 'done';
-                        }
+                    if (data.success) {
+                        currentSuccessCount++;
+                        // 每次成功都更新狀態，讓用看到進度
+                        setOrders(prevOrders => {
+                            if (!Array.isArray(prevOrders)) return [];
+                            const newOrders = [...prevOrders];
+                            if (newOrders[orderIndex]) {
+                                const photoCount = Number(data.totalPhotos) || 0;
+                                newOrders[orderIndex] = {
+                                    ...newOrders[orderIndex],
+                                    deliveryPhotoCount: photoCount
+                                };
+                                if (photoCount >= 2) {
+                                    newOrders[orderIndex].status = 'done';
+                                }
+                            }
+                            return newOrders;
+                        });
                     }
-                    return newOrders;
-                });
-            } else {
-                alert(data.error || '上傳失敗');
+                } catch (innerErr) {
+                    console.error(`File ${i} upload failed:`, innerErr);
+                    // Continue to next file even if one fails
+                }
             }
+
+            if (currentSuccessCount === 0) {
+                alert('部分或全部照片上傳失敗');
+            }
+
         } catch (e) {
-            console.error('Upload error:', e);
-            alert('上傳失敗，請重試');
+            console.error('Batch upload error:', e);
+            alert('上傳發生錯誤');
         } finally {
             setUploading(orderIndex, false);
         }
@@ -131,9 +137,16 @@ function DriverContent() {
     };
 
     const handleFileSelect = (orderIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            uploadDeliveryPhoto(orderIndex, file);
+        const files = e.target.files;
+        if (files && files.length > 0) {
+            // Check limit
+            const currentCount = orders[orderIndex]?.deliveryPhotoCount || 0;
+            if (currentCount + files.length > 16) {
+                alert(`最多只能上傳 16 張照片 (目前 ${currentCount} 張)`);
+                e.target.value = '';
+                return;
+            }
+            uploadDeliveryPhotosBatch(orderIndex, files);
         }
         e.target.value = ''; // 重置，允許再次選擇同一檔案
     };
@@ -214,7 +227,7 @@ function DriverContent() {
                                         ? 'bg-yellow-100 text-yellow-700'
                                         : 'bg-gray-100 text-gray-400'
                                     }`}>
-                                    📷 {photoCount}/8
+                                    📷 {photoCount}/16
                                 </div>
                             </div>
 
@@ -288,8 +301,8 @@ function DriverContent() {
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
                                         onClick={() => fileInputRefs.current[i]?.click()}
-                                        disabled={isUploading || photoCount >= 8}
-                                        className={`py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 ${photoCount >= 8
+                                        disabled={isUploading || photoCount >= 16}
+                                        className={`py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 ${photoCount >= 16
                                             ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                             : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
                                             }`}
@@ -302,14 +315,14 @@ function DriverContent() {
                                         ) : (
                                             <>
                                                 <Camera className="w-4 h-4" />
-                                                拍照上傳
+                                                拍照/選圖
                                             </>
                                         )}
                                     </button>
                                     <input
                                         type="file"
                                         accept="image/*"
-                                        capture="environment"
+                                        multiple
                                         className="hidden"
                                         ref={el => { fileInputRefs.current[i] = el; }}
                                         onChange={(e) => handleFileSelect(i, e)}
