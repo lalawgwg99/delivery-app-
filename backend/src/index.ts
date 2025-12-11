@@ -116,11 +116,16 @@ app.post('/api/analyze', async (c) => {
 
 		console.log('✨ Successfully parsed', data.orders.length, 'orders');
 
-		// 將圖片 base64 加入每個訂單（用於後續存儲）
+		// 構建 Data URL
 		const imageDataUrl = `data:${image.type};base64,${base64Image}`;
+
+		// 將圖片 base64 存入 KV (暫存 24 小時)，只回傳 Key 給前端
+		const draftImageKey = `draft_${crypto.randomUUID()}`;
+		await c.env.ORDERS_DB.put(draftImageKey, imageDataUrl, { expirationTtl: 86400 });
+
 		data.orders = data.orders.map((order: any) => ({
 			...order,
-			sourceImageData: imageDataUrl
+			imageKey: draftImageKey
 		}));
 
 		return c.json({ success: true, data });
@@ -145,12 +150,38 @@ app.post('/api/create-route', async (c) => {
 	if (body.orders && Array.isArray(body.orders)) {
 		for (let i = 0; i < body.orders.length; i++) {
 			const order = body.orders[i];
-			if (order.sourceImageData) {
-				// 為每個訂單生成唯一的圖片 key
+
+			// 新邏輯：從 Draft KV 轉存到永久 KV
+			if (order.imageKey) {
+				// 1. 嘗試讀取暫存圖片
+				let imageData = await c.env.ORDERS_DB.get(order.imageKey);
+
+				// 如果找不到 (可能過期)，嘗試看是否直接傳了 base64 (兼容舊版/備援)
+				if (!imageData && order.sourceImageData) {
+					imageData = order.sourceImageData;
+				}
+
+				if (imageData) {
+					// 2. 生成永久 Key
+					const permanentKey = `img_${routeId}_${i}`;
+
+					// 3. 存入永久 KV
+					await c.env.ORDERS_DB.put(permanentKey, imageData);
+
+					// 4. 更新訂單資訊，指向永久 Key
+					body.orders[i] = {
+						...order,
+						imageKey: permanentKey,
+						sourceImageData: undefined // 確保移除大檔
+					};
+				} else {
+					console.warn(`Image data not found for draft key: ${order.imageKey}`);
+				}
+			}
+			// 舊邏輯兼容：如果前端直接傳 base64 (不太可能，但保留相容性)
+			else if (order.sourceImageData) {
 				const imageKey = `img_${routeId}_${i}`;
-				// 儲存圖片到 KV（不設過期時間，永久保存）
 				await c.env.ORDERS_DB.put(imageKey, order.sourceImageData);
-				// 將 key 存入訂單，移除 base64 數據以減少存儲
 				body.orders[i] = {
 					...order,
 					imageKey,
