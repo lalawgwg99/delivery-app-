@@ -17,6 +17,7 @@ interface OrderDetail {
     phone: string;
     address: string;
     items: string;
+    deliveryPhotoCount?: number;
 }
 
 export default function HistoryPage() {
@@ -175,11 +176,22 @@ export default function HistoryPage() {
                         <div className="space-y-4">
                             {viewingDetail.orders.map((order, idx) => (
                                 <div key={idx} className="border-b border-gray-100 pb-4 last:border-0">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <span className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                                            {idx + 1}
-                                        </span>
-                                        <span className="font-bold">{order.customer || '未命名'}</span>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${order.deliveryPhotoCount && order.deliveryPhotoCount >= 2 ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'}`}>
+                                                {order.deliveryPhotoCount && order.deliveryPhotoCount >= 2 ? '✓' : idx + 1}
+                                            </span>
+                                            <span className="font-bold">{order.customer || '未命名'}</span>
+                                        </div>
+                                        {order.deliveryPhotoCount && order.deliveryPhotoCount > 0 && (
+                                            <a
+                                                href={`/driver?id=${viewingDetail.routeId}`}
+                                                target="_blank"
+                                                className="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-full"
+                                            >
+                                                📷 {order.deliveryPhotoCount} 張照片
+                                            </a>
+                                        )}
                                     </div>
                                     {order.phone && <p className="text-sm text-gray-600">📞 {order.phone}</p>}
                                     {order.address && <p className="text-sm text-gray-600">📍 {order.address}</p>}

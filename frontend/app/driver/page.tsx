@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { MapPin, CheckCircle, Navigation, Phone, FileText, X } from 'lucide-react';
+import { useEffect, useState, Suspense, useRef } from 'react';
+import { MapPin, CheckCircle, Navigation, Phone, FileText, X, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
 
 function DriverContent() {
     const searchParams = useSearchParams();
@@ -10,17 +12,19 @@ function DriverContent() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewingImage, setViewingImage] = useState<string | null>(null);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
+    const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
+    const [viewingDeliveryPhotos, setViewingDeliveryPhotos] = useState<{ orderIndex: number; photos: string[] } | null>(null);
+    const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
-        if (!id || !API_URL) return;
+        if (!id) return;
         fetch(`${API_URL}/api/route/${id}`)
             .then(res => res.json())
             .then(data => {
                 if (data.orders) {
                     const loadedOrders = data.orders.map((o: any) => ({
                         ...o,
-                        status: 'pending' // 預設狀態
+                        status: o.deliveryPhotoCount && o.deliveryPhotoCount >= 2 ? 'done' : 'pending'
                     }));
                     setOrders(loadedOrders);
                 }
@@ -30,7 +34,7 @@ function DriverContent() {
                 alert('訂單讀取錯誤');
                 setLoading(false);
             });
-    }, [id, API_URL]);
+    }, [id]);
 
     const openMap = (address: string) => {
         window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
@@ -41,10 +45,63 @@ function DriverContent() {
         window.location.href = `tel:${phone}`;
     };
 
-    const toggleStatus = (index: number) => {
-        const newOrders = [...orders];
-        newOrders[index].status = newOrders[index].status === 'pending' ? 'done' : 'pending';
-        setOrders(newOrders);
+    // 上傳送達照片
+    const uploadDeliveryPhoto = async (orderIndex: number, file: File) => {
+        if (!id) return;
+        setUploadingIndex(orderIndex);
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('routeId', id);
+        formData.append('orderIndex', String(orderIndex));
+
+        try {
+            const res = await fetch(`${API_URL}/api/upload-delivery-photo`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.success) {
+                // 更新本地狀態
+                const newOrders = [...orders];
+                newOrders[orderIndex].deliveryPhotoCount = data.totalPhotos;
+                if (data.totalPhotos >= 2) {
+                    newOrders[orderIndex].status = 'done';
+                }
+                setOrders(newOrders);
+            } else {
+                alert(data.error || '上傳失敗');
+            }
+        } catch (e) {
+            alert('上傳失敗，請重試');
+        }
+        setUploadingIndex(null);
+    };
+
+    // 查看已拍照片
+    const viewDeliveryPhotos = async (orderIndex: number) => {
+        if (!id) return;
+        try {
+            const res = await fetch(`${API_URL}/api/delivery-photos/${id}/${orderIndex}`);
+            const data = await res.json();
+            if (data.success && data.photos.length > 0) {
+                const photoUrls = data.photos.map((p: any) => `${API_URL}${p.url}`);
+                setViewingDeliveryPhotos({ orderIndex, photos: photoUrls });
+            } else {
+                alert('尚無送達照片');
+            }
+        } catch (e) {
+            alert('載入照片失敗');
+        }
+    };
+
+    const handleFileSelect = (orderIndex: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            uploadDeliveryPhoto(orderIndex, file);
+        }
+        e.target.value = ''; // 重置，允許再次選擇同一檔案
     };
 
     if (loading) return (
@@ -81,26 +138,28 @@ function DriverContent() {
             <div className="space-y-4">
                 {orders.map((order, i) => {
                     const isDone = order.status === 'done';
+                    const photoCount = order.deliveryPhotoCount || 0;
+                    const isUploading = uploadingIndex === i;
+
                     return (
                         <div
                             key={i}
                             className={`relative p-5 rounded-2xl transition-all duration-300 border ${isDone
-                                ? 'bg-gray-100 border-transparent opacity-60 scale-[0.98]'
+                                ? 'bg-green-50 border-green-200'
                                 : 'bg-white shadow-sm border-gray-100 scale-100'
                                 }`}
                         >
-                            {/* 頂部：序號、客戶名稱、完成按鈕 */}
+                            {/* 頂部：序號、客戶名稱 */}
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-3">
-                                    <span className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold shadow-sm ${isDone ? 'bg-gray-300 text-white' : 'bg-blue-600 text-white'
+                                    <span className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold shadow-sm ${isDone ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'
                                         }`}>
-                                        {i + 1}
+                                        {isDone ? '✓' : i + 1}
                                     </span>
                                     <div>
-                                        <span className={`font-bold text-lg ${isDone ? 'text-gray-500' : 'text-gray-800'}`}>
+                                        <span className={`font-bold text-lg ${isDone ? 'text-green-700' : 'text-gray-800'}`}>
                                             {order.customer || '客戶'}
                                         </span>
-                                        {/* 電話號碼 - 可點擊撥打 */}
                                         {order.phone && (
                                             <button
                                                 onClick={() => makeCall(order.phone)}
@@ -113,16 +172,15 @@ function DriverContent() {
                                     </div>
                                 </div>
 
-                                <button
-                                    onClick={() => toggleStatus(i)}
-                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-bold transition-colors ${isDone
-                                        ? 'bg-green-100 text-green-700'
-                                        : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-600'
-                                        }`}
-                                >
-                                    <CheckCircle className="w-4 h-4" />
-                                    {isDone ? '已完成' : '標記完成'}
-                                </button>
+                                {/* 照片狀態標籤 */}
+                                <div className={`px-3 py-1.5 rounded-full text-sm font-bold ${isDone
+                                    ? 'bg-green-100 text-green-700'
+                                    : photoCount > 0
+                                        ? 'bg-yellow-100 text-yellow-700'
+                                        : 'bg-gray-100 text-gray-400'
+                                    }`}>
+                                    📷 {photoCount}/8
+                                </div>
                             </div>
 
                             {/* 訂單編號與發票號碼 */}
@@ -152,12 +210,12 @@ function DriverContent() {
 
                             {/* 地址 */}
                             <div
-                                onClick={() => !isDone && openMap(order.address)}
+                                onClick={() => openMap(order.address)}
                                 className="flex items-start gap-2.5 mb-4 pl-1 cursor-pointer group"
                             >
-                                <MapPin className={`w-5 h-5 mt-0.5 flex-shrink-0 transition-colors ${isDone ? 'text-gray-400' : 'text-red-500 group-hover:scale-110'}`} />
+                                <MapPin className={`w-5 h-5 mt-0.5 flex-shrink-0 transition-colors ${isDone ? 'text-green-500' : 'text-red-500 group-hover:scale-110'}`} />
                                 <div className="flex-1">
-                                    <p className={`text-[17px] leading-snug font-medium transition-colors ${isDone ? 'text-gray-500 line-through decoration-gray-400' : 'text-gray-800 group-hover:text-blue-600'
+                                    <p className={`text-[17px] leading-snug font-medium transition-colors ${isDone ? 'text-green-700' : 'text-gray-800 group-hover:text-blue-600'
                                         }`}>
                                         {order.address}
                                     </p>
@@ -166,24 +224,80 @@ function DriverContent() {
                             </div>
 
                             {/* 操作按鈕區 */}
-                            {!isDone && (
+                            <div className="grid grid-cols-2 gap-2">
+                                {/* 導航/看單 按鈕 */}
+                                <button
+                                    onClick={() => openMap(order.address)}
+                                    className="bg-blue-50 text-blue-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-100 transition-colors active:scale-95"
+                                >
+                                    <Navigation className="w-4 h-4 fill-current" />
+                                    開啟導航
+                                </button>
+
+                                {order.imageKey && (
+                                    <button
+                                        onClick={() => setViewingImage(order.imageKey)}
+                                        className="bg-gray-50 text-gray-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors active:scale-95"
+                                    >
+                                        <FileText className="w-4 h-4" />
+                                        看單
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* 拍照回報區 */}
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                                <p className="text-xs text-gray-500 mb-2">
+                                    送達拍照回報 (需至少 2 張)
+                                </p>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button
-                                        onClick={() => openMap(order.address)}
-                                        className="bg-blue-50 text-blue-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-blue-100 transition-colors active:scale-95"
+                                        onClick={() => fileInputRefs.current[i]?.click()}
+                                        disabled={isUploading || photoCount >= 8}
+                                        className={`py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 ${photoCount >= 8
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            : 'bg-orange-50 text-orange-600 hover:bg-orange-100'
+                                            }`}
                                     >
-                                        <Navigation className="w-4 h-4 fill-current" />
-                                        開啟導航
+                                        {isUploading ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                上傳中...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Camera className="w-4 h-4" />
+                                                拍照上傳
+                                            </>
+                                        )}
                                     </button>
-                                    {order.imageKey && (
-                                        <button
-                                            onClick={() => setViewingImage(order.imageKey)}
-                                            className="bg-gray-50 text-gray-700 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-100 transition-colors active:scale-95"
-                                        >
-                                            <FileText className="w-4 h-4" />
-                                            看單
-                                        </button>
-                                    )}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        capture="environment"
+                                        className="hidden"
+                                        ref={el => { fileInputRefs.current[i] = el; }}
+                                        onChange={(e) => handleFileSelect(i, e)}
+                                    />
+
+                                    <button
+                                        onClick={() => viewDeliveryPhotos(i)}
+                                        disabled={photoCount === 0}
+                                        className={`py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 ${photoCount === 0
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                            : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                                            }`}
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        查看已拍 ({photoCount})
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* 完成標記 */}
+                            {isDone && (
+                                <div className="absolute top-3 right-3">
+                                    <CheckCircle className="w-6 h-6 text-green-500" />
                                 </div>
                             )}
                         </div>
@@ -191,7 +305,7 @@ function DriverContent() {
                 })}
             </div>
 
-            {/* 圖片查看彈窗 */}
+            {/* 外送單原圖彈窗 */}
             {viewingImage && (
                 <div
                     className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
@@ -216,6 +330,37 @@ function DriverContent() {
                                         e.currentTarget.alt = '圖片載入失敗';
                                     }}
                                 />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 送達照片彈窗 */}
+            {viewingDeliveryPhotos && (
+                <div
+                    className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
+                    onClick={() => setViewingDeliveryPhotos(null)}
+                >
+                    <div className="relative max-w-4xl w-full bg-white rounded-2xl p-4 animate-in zoom-in duration-200 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                        <button
+                            onClick={() => setViewingDeliveryPhotos(null)}
+                            className="absolute top-2 right-2 bg-gray-900/80 text-white p-2 rounded-full hover:bg-gray-900 transition-colors z-10"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <div className="text-center">
+                            <h3 className="text-lg font-bold text-gray-900 mb-4">送達照片 ({viewingDeliveryPhotos.photos.length} 張)</h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                {viewingDeliveryPhotos.photos.map((url, idx) => (
+                                    <div key={idx} className="bg-gray-100 rounded-xl overflow-hidden">
+                                        <img
+                                            src={url}
+                                            alt={`送達照片 ${idx + 1}`}
+                                            className="w-full h-auto object-cover aspect-square"
+                                        />
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>

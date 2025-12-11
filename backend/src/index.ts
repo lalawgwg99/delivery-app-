@@ -281,4 +281,111 @@ app.post('/api/history/detail', async (c) => {
 	return c.json({ success: true, data: JSON.parse(data) });
 });
 
+// 8. 上傳送達照片
+app.post('/api/upload-delivery-photo', async (c) => {
+	try {
+		const formData = await c.req.parseBody();
+		const image = formData['image'];
+		const routeId = formData['routeId'] as string;
+		const orderIndex = formData['orderIndex'] as string;
+
+		if (!(image instanceof File)) {
+			return c.json({ success: false, error: 'No image uploaded' }, 400);
+		}
+
+		if (!routeId || orderIndex === undefined) {
+			return c.json({ success: false, error: 'Missing routeId or orderIndex' }, 400);
+		}
+
+		// 轉換為 base64
+		const arrayBuffer = await image.arrayBuffer();
+		const bytes = new Uint8Array(arrayBuffer);
+		let binary = '';
+		for (let i = 0; i < bytes.byteLength; i++) {
+			binary += String.fromCharCode(bytes[i]);
+		}
+		const base64Image = btoa(binary);
+		const imageDataUrl = `data:${image.type};base64,${base64Image}`;
+
+		// 查詢現有照片數量
+		const prefix = `delivery_photo:${routeId}:${orderIndex}:`;
+		const list = await c.env.ORDERS_DB.list({ prefix });
+		const photoCount = list.keys.length;
+
+		if (photoCount >= 8) {
+			return c.json({ success: false, error: '已達照片上限 (8張)' }, 400);
+		}
+
+		// 儲存照片
+		const photoKey = `delivery_photo:${routeId}:${orderIndex}:${photoCount}`;
+		await c.env.ORDERS_DB.put(photoKey, imageDataUrl);
+
+		// 更新訂單的照片數量
+		const orderData = await c.env.ORDERS_DB.get(routeId);
+		if (orderData) {
+			const order = JSON.parse(orderData);
+			if (order.orders && order.orders[parseInt(orderIndex)]) {
+				order.orders[parseInt(orderIndex)].deliveryPhotoCount = photoCount + 1;
+				await c.env.ORDERS_DB.put(routeId, JSON.stringify(order));
+			}
+		}
+
+		return c.json({ success: true, photoIndex: photoCount, totalPhotos: photoCount + 1 });
+
+	} catch (e: any) {
+		console.error('Error uploading delivery photo:', e);
+		return c.json({ success: false, error: e.message }, 500);
+	}
+});
+
+// 9. 查詢送達照片列表
+app.get('/api/delivery-photos/:routeId/:orderIndex', async (c) => {
+	const routeId = c.req.param('routeId');
+	const orderIndex = c.req.param('orderIndex');
+
+	const prefix = `delivery_photo:${routeId}:${orderIndex}:`;
+	const list = await c.env.ORDERS_DB.list({ prefix });
+
+	const photos = list.keys.map(key => ({
+		key: key.name,
+		url: `/api/delivery-photo/${encodeURIComponent(key.name)}`
+	}));
+
+	return c.json({ success: true, photos });
+});
+
+// 10. 讀取單張送達照片
+app.get('/api/delivery-photo/:key', async (c) => {
+	const photoKey = decodeURIComponent(c.req.param('key'));
+	const imageData = await c.env.ORDERS_DB.get(photoKey);
+
+	if (!imageData) {
+		return c.json({ error: '照片不存在' }, 404);
+	}
+
+	// 解析 data URL
+	const matches = imageData.match(/^data:(.+);base64,(.+)$/);
+	if (!matches) {
+		return c.json({ error: '照片格式錯誤' }, 500);
+	}
+
+	const mimeType = matches[1];
+	const base64Data = matches[2];
+
+	// 將 base64 轉換為 binary
+	const binaryString = atob(base64Data);
+	const bytes = new Uint8Array(binaryString.length);
+	for (let i = 0; i < binaryString.length; i++) {
+		bytes[i] = binaryString.charCodeAt(i);
+	}
+
+	return new Response(bytes, {
+		headers: {
+			'Content-Type': mimeType,
+			'Cache-Control': 'public, max-age=86400'
+		}
+	});
+});
+
 export default app;
+
