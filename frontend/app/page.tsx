@@ -595,7 +595,13 @@ export default function StoreAdmin() {
               <Share2 className="w-10 h-10 text-[#34C759]" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">準備完成！</h2>
-            <p className="text-gray-500 mb-8 leading-relaxed">
+
+            {/* 顯示訂單數量 */}
+            <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-full inline-block mb-4">
+              📦 本次共 {orders.length} 筆訂單
+            </div>
+
+            <p className="text-gray-500 mb-6 leading-relaxed">
               路線已建立並儲存<br />請將連結傳送給外送員
             </p>
 
@@ -616,12 +622,24 @@ export default function StoreAdmin() {
               複製連結
             </button>
 
-            <button
-              onClick={() => window.location.reload()}
-              className="mt-6 text-blue-600 text-sm font-medium hover:underline"
-            >
-              建立新的一單
-            </button>
+            {/* 繼續上傳和建立新單 */}
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setRouteId('');
+                  // 保留現有訂單，返回編輯頁面繼續上傳
+                }}
+                className="flex-1 bg-orange-50 text-orange-600 py-3 rounded-xl font-bold hover:bg-orange-100 transition-colors"
+              >
+                ➕ 繼續上傳
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+              >
+                建立新的一單
+              </button>
+            </div>
           </div>
         )}
       </main>

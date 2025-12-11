@@ -281,7 +281,41 @@ app.post('/api/history/detail', async (c) => {
 	return c.json({ success: true, data: JSON.parse(data) });
 });
 
-// 8. 上傳送達照片
+// 8. 刪除歷史記錄
+app.post('/api/history/delete', async (c) => {
+	const body = await c.req.json();
+	const { password, routeId, date } = body;
+
+	// 驗證密碼
+	if (!c.env.HISTORY_PASSWORD || password !== c.env.HISTORY_PASSWORD) {
+		return c.json({ success: false, error: '密碼錯誤' }, 401);
+	}
+
+	// 刪除訂單本身
+	await c.env.ORDERS_DB.delete(routeId);
+
+	// 刪除歷史索引
+	const historyKey = `history:${date}:${routeId}`;
+	await c.env.ORDERS_DB.delete(historyKey);
+
+	// 刪除相關圖片
+	const imgPrefix = `img_${routeId}_`;
+	const imgList = await c.env.ORDERS_DB.list({ prefix: imgPrefix });
+	for (const key of imgList.keys) {
+		await c.env.ORDERS_DB.delete(key.name);
+	}
+
+	// 刪除送達照片
+	const photoPrefix = `delivery_photo:${routeId}:`;
+	const photoList = await c.env.ORDERS_DB.list({ prefix: photoPrefix });
+	for (const key of photoList.keys) {
+		await c.env.ORDERS_DB.delete(key.name);
+	}
+
+	return c.json({ success: true });
+});
+
+// 9. 上傳送達照片
 app.post('/api/upload-delivery-photo', async (c) => {
 	try {
 		const formData = await c.req.parseBody();

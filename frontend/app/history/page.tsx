@@ -90,6 +90,30 @@ export default function HistoryPage() {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
+    // 刪除記錄
+    const deleteRecord = async (routeId: string) => {
+        if (!confirm('確定要刪除這筆記錄嗎？此操作無法復原。')) {
+            return;
+        }
+        try {
+            const pwd = sessionStorage.getItem('historyPassword') || password;
+            const res = await fetch(`${API_URL}/api/history/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pwd, routeId, date: selectedDate })
+            });
+            const data = await res.json();
+            if (data.success) {
+                // 從列表中移除
+                setRecords(records.filter(r => r.routeId !== routeId));
+            } else {
+                alert(data.error || '刪除失敗');
+            }
+        } catch (e) {
+            alert('刪除失敗，請重試');
+        }
+    };
+
     // 查看詳情
     const viewDetail = async (routeId: string) => {
         try {
@@ -269,7 +293,7 @@ export default function HistoryPage() {
                                         ) : (
                                             <>
                                                 <Copy className="w-4 h-4" />
-                                                <span>複製連結</span>
+                                                <span>複製</span>
                                             </>
                                         )}
                                     </button>
@@ -278,7 +302,13 @@ export default function HistoryPage() {
                                         className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors"
                                     >
                                         <Eye className="w-4 h-4" />
-                                        <span>查看詳情</span>
+                                        <span>詳情</span>
+                                    </button>
+                                    <button
+                                        onClick={() => deleteRecord(record.routeId)}
+                                        className="py-2 px-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors"
+                                    >
+                                        🗑️
                                     </button>
                                 </div>
                             </div>
