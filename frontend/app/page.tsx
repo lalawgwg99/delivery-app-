@@ -331,18 +331,28 @@ export default function StoreAdmin() {
         <div className="flex items-center justify-between max-w-md mx-auto">
           <div className="flex flex-col">
             <h1 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight">RouteSnap</h1>
-            <p className="text-[13px] font-medium text-blue-600">即時拍拍</p>
+            <p className="text-[13px] font-medium text-blue-600">AI識別派單系統</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col items-end gap-1">
+            <div className="flex items-center gap-2">
+              <a
+                href="/history"
+                className="text-[13px] font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors"
+              >
+                📋 歷史
+              </a>
+              <span className="text-[13px] font-semibold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
+                WG五甲
+              </span>
+            </div>
             <a
-              href="/history"
-              className="text-[13px] font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors"
+              href="https://github.com/lalawgwg99/delivery-app-"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-gray-400 hover:text-blue-500 transition-colors"
             >
-              📋 歷史
+              GitHub
             </a>
-            <span className="text-[13px] font-semibold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
-              WG五甲
-            </span>
           </div>
         </div>
       </header>
@@ -438,7 +448,7 @@ export default function StoreAdmin() {
             </div>
 
             <div className="mt-8 text-center">
-              <p className="text-xs text-gray-300 font-mono tracking-widest">DESIGNED BY 榮德</p>
+              <p className="text-xs text-blue-500 font-mono tracking-widest">DESIGNED 🐣榮德</p>
             </div>
           </div>
         )}
