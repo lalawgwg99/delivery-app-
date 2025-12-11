@@ -78,14 +78,22 @@ function DriverContent() {
                         body: formData
                     });
 
-                    if (!res.ok) throw new Error(`Status ${res.status}`);
+                    if (!res.ok) {
+                        const errorText = await res.text().catch(() => 'Unknown error');
+                        throw new Error(`Server Error: ${res.status} - ${errorText.substring(0, 50)}...`);
+                    }
 
                     const data = await res.json();
 
-                    if (data.success) {
-                        currentSuccessCount++;
-                        // 每次成功都更新狀態，讓用看到進度
-                        setOrders(prevOrders => {
+                    if (!data.success) {
+                        throw new Error(data.error || 'Upload failed');
+                    }
+
+                    currentSuccessCount++;
+
+                    // 安全更新狀態
+                    setOrders(prevOrders => {
+                        try {
                             if (!Array.isArray(prevOrders)) return [];
                             const newOrders = [...prevOrders];
                             if (newOrders[orderIndex]) {
@@ -99,11 +107,18 @@ function DriverContent() {
                                 }
                             }
                             return newOrders;
-                        });
-                    }
-                } catch (innerErr) {
+                        } catch (stateErr) {
+                            console.error('State update error:', stateErr);
+                            return prevOrders;
+                        }
+                    });
+
+                } catch (innerErr: any) {
                     console.error(`File ${i} upload failed:`, innerErr);
-                    // Continue to next file even if one fails
+                    // 顯示具體錯誤給用戶 (如果是嚴重錯誤)
+                    if (innerErr.message.includes('Server Error')) {
+                        alert(`上傳第 ${i + 1} 張失敗: 服务器錯誤 (${innerErr.message})`);
+                    }
                 }
             }
 
