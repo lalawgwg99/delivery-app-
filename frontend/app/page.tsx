@@ -25,7 +25,7 @@ export default function StoreAdmin() {
   const [uploadQueue, setUploadQueue] = useState<File[]>([]);
   const [processingIndex, setProcessingIndex] = useState(-1);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
 
   // 批量上傳處理
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {

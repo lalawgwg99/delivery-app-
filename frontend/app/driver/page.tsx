@@ -10,7 +10,7 @@ function DriverContent() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewingImage, setViewingImage] = useState<string | null>(null);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
 
     useEffect(() => {
         if (!id || !API_URL) return;
