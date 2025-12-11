@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, Smartphone, CheckCircle, Navigation, Phone, FileText } from 'lucide-react';
+import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, FileText } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 // 解決 Next.js 在 Strict Mode 下與拖曳套件的兼容性問題
@@ -26,6 +26,29 @@ export default function StoreAdmin() {
   const [processingIndex, setProcessingIndex] = useState(-1);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
+  const STORAGE_KEY = 'routesnap_draft_orders'; // LocalStorage key
+
+  // LocalStorage 暫存：載入草稿
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setOrders(parsed);
+        }
+      } catch (e) {
+        console.error('無法恢復草稿:', e);
+      }
+    }
+  }, []);
+
+  // LocalStorage 暫存：自動儲存
+  useEffect(() => {
+    if (orders.length > 0 && !routeId) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+    }
+  }, [orders, routeId]);
 
   // 批量上傳處理
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,7 +62,7 @@ export default function StoreAdmin() {
     setUploadQueue(files);
     setLoading(true);
 
-    const allOrders: any[] = [];
+    const newOrders: any[] = [];
 
     for (let i = 0; i < files.length; i++) {
       setProcessingIndex(i);
@@ -57,7 +80,7 @@ export default function StoreAdmin() {
             id: `item-${Date.now()}-${i}-${idx}`,
             sourceImage: file.name
           }));
-          allOrders.push(...ordersWithId);
+          newOrders.push(...ordersWithId);
         } else {
           console.error(`圖片 ${i + 1} 辨識失敗:`, json.error);
         }
@@ -66,7 +89,8 @@ export default function StoreAdmin() {
       }
     }
 
-    setOrders(allOrders);
+    // 追加到現有訂單（而非取代）
+    setOrders(prevOrders => [...prevOrders, ...newOrders]);
     setLoading(false);
     setProcessingIndex(-1);
     setUploadQueue([]);
@@ -102,10 +126,13 @@ export default function StoreAdmin() {
     try {
       const res = await fetch(`${API_URL}/api/create-route`, {
         method: 'POST',
-        body: JSON.stringify({ orders, createdAt: new Date() })
+        body: JSON.stringify({ orders, createdAt: new Date() }),
+        headers: { 'Content-Type': 'application/json' }
       });
       const data = await res.json();
       setRouteId(data.routeId);
+      // 成功建立連結後清除草稿
+      localStorage.removeItem(STORAGE_KEY);
     } catch (e) {
       alert('建立連結失敗');
     }
@@ -572,27 +599,45 @@ export default function StoreAdmin() {
 
             {/* 底部浮動按鈕區 */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-lg border-t border-gray-200">
-              <div className="max-w-md mx-auto flex gap-3">
-                <button
-                  onClick={() => window.location.reload()}
-                  className="px-4 py-3.5 rounded-xl font-bold text-gray-600 bg-gray-100 active:bg-gray-200 transition-colors"
-                >
-                  重來
-                </button>
-                <button
-                  onClick={generatePickingListPDF}
-                  className="px-4 py-3.5 rounded-xl font-bold text-blue-600 bg-blue-50 active:bg-blue-100 transition-colors flex items-center gap-2"
-                >
-                  <FileText className="w-5 h-5" />
-                  備貨總表
-                </button>
-                <button
-                  onClick={createLink}
-                  className="flex-1 bg-gray-900 text-white py-3.5 rounded-xl font-bold text-lg shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                >
-                  <Share2 className="w-5 h-5" />
-                  生成派單連結
-                </button>
+              <div className="max-w-md mx-auto">
+                {/* 上排：追加上傳 */}
+                <div className="flex gap-3 mb-3">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="flex-1 py-3 rounded-xl font-bold text-orange-600 bg-orange-50 active:bg-orange-100 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Camera className="w-5 h-5" />
+                    ➕ 追加上傳
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('確定要清除所有訂單並重新開始嗎？')) {
+                        localStorage.removeItem(STORAGE_KEY);
+                        window.location.reload();
+                      }
+                    }}
+                    className="px-4 py-3 rounded-xl font-bold text-gray-600 bg-gray-100 active:bg-gray-200 transition-colors"
+                  >
+                    🗑️ 清除
+                  </button>
+                </div>
+                {/* 下排：備貨總表 + 生成連結 */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={generatePickingListPDF}
+                    className="px-4 py-3.5 rounded-xl font-bold text-blue-600 bg-blue-50 active:bg-blue-100 transition-colors flex items-center gap-2"
+                  >
+                    <FileText className="w-5 h-5" />
+                    備貨總表
+                  </button>
+                  <button
+                    onClick={createLink}
+                    className="flex-1 bg-gray-900 text-white py-3.5 rounded-xl font-bold text-lg shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    生成派單連結
+                  </button>
+                </div>
               </div>
             </div>
           </div>
