@@ -56,8 +56,7 @@
 
 ```bash
 # 1. Clone 專案
-git clone https://github.com/lalawgwg99/delivery-app-.git
-cd delivery-app-
+git clone
 
 # 2. 後端部署
 cd backend
