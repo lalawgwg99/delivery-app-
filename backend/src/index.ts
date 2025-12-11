@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 type Bindings = {
 	ORDERS_DB: KVNamespace;
 	GEMINI_API_KEY: string;
+	HISTORY_PASSWORD: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
@@ -134,10 +135,11 @@ app.post('/api/analyze', async (c) => {
 	}
 });
 
-// 2. 建立訂單並產生分享 ID
+// 2. 建立訂單並產生分享 ID（同時存入歷史記錄）
 app.post('/api/create-route', async (c) => {
 	const body = await c.req.json();
 	const routeId = crypto.randomUUID().split('-')[0];
+	const now = new Date();
 
 	// 處理圖片儲存
 	if (body.orders && Array.isArray(body.orders)) {
@@ -146,7 +148,7 @@ app.post('/api/create-route', async (c) => {
 			if (order.sourceImageData) {
 				// 為每個訂單生成唯一的圖片 key
 				const imageKey = `img_${routeId}_${i}`;
-				// 儲存圖片到 KV
+				// 儲存圖片到 KV（不設過期時間，永久保存）
 				await c.env.ORDERS_DB.put(imageKey, order.sourceImageData);
 				// 將 key 存入訂單，移除 base64 數據以減少存儲
 				body.orders[i] = {
@@ -158,8 +160,19 @@ app.post('/api/create-route', async (c) => {
 		}
 	}
 
-	// 存入 KV (保存 24 小時)
-	await c.env.ORDERS_DB.put(routeId, JSON.stringify(body), { expirationTtl: 86400 });
+	// 存入訂單 KV（不設過期時間，永久保存）
+	await c.env.ORDERS_DB.put(routeId, JSON.stringify(body));
+
+	// 存入歷史記錄索引
+	const dateStr = now.toISOString().split('T')[0]; // 2025-12-11
+	const historyKey = `history:${dateStr}:${routeId}`;
+	const historyEntry = {
+		routeId,
+		createdAt: now.toISOString(),
+		orderCount: body.orders?.length || 0,
+		// 儲存簡要資訊，不重複存完整訂單
+	};
+	await c.env.ORDERS_DB.put(historyKey, JSON.stringify(historyEntry));
 
 	return c.json({ success: true, routeId });
 });
@@ -204,6 +217,68 @@ app.get('/api/image/:key', async (c) => {
 			'Cache-Control': 'public, max-age=86400'
 		}
 	});
+});
+
+// 5. 驗證歷史查詢密碼
+app.post('/api/history/verify', async (c) => {
+	const body = await c.req.json();
+	const password = body.password;
+
+	if (!c.env.HISTORY_PASSWORD) {
+		return c.json({ success: false, error: '未設定查詢密碼' }, 500);
+	}
+
+	if (password === c.env.HISTORY_PASSWORD) {
+		return c.json({ success: true });
+	} else {
+		return c.json({ success: false, error: '密碼錯誤' }, 401);
+	}
+});
+
+// 6. 查詢歷史記錄
+app.post('/api/history/list', async (c) => {
+	const body = await c.req.json();
+	const { password, date } = body;
+
+	// 驗證密碼
+	if (!c.env.HISTORY_PASSWORD || password !== c.env.HISTORY_PASSWORD) {
+		return c.json({ success: false, error: '密碼錯誤' }, 401);
+	}
+
+	// 查詢指定日期的歷史記錄
+	const prefix = `history:${date}:`;
+	const list = await c.env.ORDERS_DB.list({ prefix });
+
+	const records = [];
+	for (const key of list.keys) {
+		const data = await c.env.ORDERS_DB.get(key.name);
+		if (data) {
+			records.push(JSON.parse(data));
+		}
+	}
+
+	// 按時間排序（最新在前）
+	records.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+	return c.json({ success: true, records });
+});
+
+// 7. 查詢歷史記錄詳情
+app.post('/api/history/detail', async (c) => {
+	const body = await c.req.json();
+	const { password, routeId } = body;
+
+	// 驗證密碼
+	if (!c.env.HISTORY_PASSWORD || password !== c.env.HISTORY_PASSWORD) {
+		return c.json({ success: false, error: '密碼錯誤' }, 401);
+	}
+
+	const data = await c.env.ORDERS_DB.get(routeId);
+	if (!data) {
+		return c.json({ success: false, error: '訂單不存在' }, 404);
+	}
+
+	return c.json({ success: true, data: JSON.parse(data) });
 });
 
 export default app;

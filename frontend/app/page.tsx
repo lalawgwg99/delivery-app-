@@ -333,11 +333,19 @@ export default function StoreAdmin() {
             <h1 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight">RouteSnap</h1>
             <p className="text-[13px] font-medium text-blue-600">即時拍拍</p>
           </div>
-          <span className="text-[13px] font-semibold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
-            WG五甲
-          </span>
+          <div className="flex items-center gap-2">
+            <a
+              href="/history"
+              className="text-[13px] font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors"
+            >
+              📋 歷史
+            </a>
+            <span className="text-[13px] font-semibold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
+              WG五甲
+            </span>
+          </div>
         </div>
-      </header >
+      </header>
 
       <main className="max-w-md mx-auto px-4 pt-6">
         {/* 狀態 1: 拍照區 */}
