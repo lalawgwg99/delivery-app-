@@ -46,6 +46,7 @@ function DriverContent() {
     };
 
     // 上傳送達照片
+    // 上傳送達照片
     const uploadDeliveryPhoto = async (orderIndex: number, file: File) => {
         if (!id) return;
         setUploadingIndex(orderIndex);
@@ -60,23 +61,40 @@ function DriverContent() {
                 method: 'POST',
                 body: formData
             });
+
+            // 先檢查回應狀態
+            if (!res.ok) {
+                throw new Error(`Server error: ${res.status}`);
+            }
+
             const data = await res.json();
 
             if (data.success) {
-                // 更新本地狀態
-                const newOrders = [...orders];
-                newOrders[orderIndex].deliveryPhotoCount = data.totalPhotos;
-                if (data.totalPhotos >= 2) {
-                    newOrders[orderIndex].status = 'done';
-                }
-                setOrders(newOrders);
+                // 使用 functional update 確保取得最新 state
+                setOrders(prevOrders => {
+                    const newOrders = [...prevOrders];
+                    // 確保該索引存在，避免崩潰
+                    if (newOrders[orderIndex]) {
+                        newOrders[orderIndex] = {
+                            ...newOrders[orderIndex],
+                            deliveryPhotoCount: data.totalPhotos
+                        };
+
+                        if (data.totalPhotos >= 2) {
+                            newOrders[orderIndex].status = 'done';
+                        }
+                    }
+                    return newOrders;
+                });
             } else {
                 alert(data.error || '上傳失敗');
             }
         } catch (e) {
+            console.error('Upload error:', e);
             alert('上傳失敗，請重試');
+        } finally {
+            setUploadingIndex(null);
         }
-        setUploadingIndex(null);
     };
 
     // 查看已拍照片
