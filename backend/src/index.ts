@@ -54,20 +54,29 @@ app.post('/api/analyze', async (c) => {
 		const customPrompt = formData['prompt'] as string;
 		const prompt = customPrompt || `你是一個台灣物流路徑規劃專家。請分析這張收據或手寫單圖片。
       
-      【重要指引】
-      1. 請「忽略」：條碼、價格、店內代碼、商店名稱。
-      2. **核心過濾**：請特別忽略「單據最底部」的行銷文字、長篇注意事項、會員權益說明或無關的法律條文。這些通常位於地址和商品列表之後。
-      3. 請「專注提取」以下欄位：
-      - 客戶名 (Customer Name)
-      - 電話 (Telephone)
-      - 地址 (Address) - (從配送起點出發)，請做順路排序。若模糊請修正為正確行政區。
-      - 配送時間 (Delivery Time)
-      - 商品名稱與數量 (Product Name and Quantity) - 格式：「商品名稱 x數量」，多項用逗號分隔
-      - 訂貨編號 (Order Number)
-      - 發票號碼 (Invoice Number)
+      【請依照以下「視覺區塊」順序進行精確提取】
+      
+      **區塊 1：單據頭部 (Header)**
+      - 尋找 「訂貨編號 (Order No.)」 或 「Booking No.」 -> 提取為 orderNumber
+      - 尋找 「發票號碼 (Invoice No.)」 -> 提取為 invoiceNumber
+      
+      **區塊 2：客戶資訊 (Customer Info)**
+      - 尋找 「顧客姓名 (Customer Name)」 -> 提取為 customer
+      - 尋找 「電話號碼 (Telephone)」 -> 提取為 phone
+      - 尋找 「送貨地址 (Delivery Address)」 -> 提取為 address (請去除郵遞區號，只保留完整中文地址)
+      
+      **區塊 3：商品明細 (Items)**
+      - 尋找表格中的「商品名稱」或「Item Name」欄位
+      - 尋找對應的「訂貨數」或「Qty」
+      - **格式要求**：請將所有商品合併為一個字串，格式為「商品A x數量, 商品B x數量」
+      - 若有「店備註 (Store Note)」或「其它備註」，請提取為 note
+      
+      **【重要：排除區域】**
+      - **嚴格忽略**：商品列表下方的「注意事項」、「Note」、「消費者簽名」、「廢四機回收」等法律條文或長篇文字。
+      - 一旦提取完商品和備註，請立刻停止，不要往下讀取底部的公司資訊或個資聲明。
 
       請直接回傳純 JSON 格式，不要 Markdown。
-      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "商品A x2, 商品B x1", "orderNumber": "...", "invoiceNumber": "...", "note": "..." } ] }`;
+      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "...", "orderNumber": "...", "invoiceNumber": "...", "note": "..." } ] }`;
 
 		const result = await model.generateContent([
 			prompt,
