@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense, useRef } from 'react';
 import { MapPin, CheckCircle, Navigation, Phone, FileText, X, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { compressImage } from '../../utils/image-compression';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
 
@@ -65,10 +66,20 @@ function DriverContent() {
 
         try {
             // 依序上傳每一張 (Sequential Upload)
+            // 依序上傳每一張 (Sequential Upload)
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
+
+                // 執行壓縮
+                let processedFile = file;
+                try {
+                    processedFile = await compressImage(file);
+                } catch (e) {
+                    console.error('Compression failed, using original file', e);
+                }
+
                 const formData = new FormData();
-                formData.append('image', file);
+                formData.append('image', processedFile);
                 formData.append('routeId', id);
                 formData.append('orderIndex', String(orderIndex));
 

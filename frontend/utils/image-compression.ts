@@ -45,6 +45,10 @@ export async function compressImage(file: File): Promise<File> {
             // 輸出壓縮後的 Blob
             canvas.toBlob(
                 (blob) => {
+                    // Help GC by clearing canvas
+                    canvas.width = 0;
+                    canvas.height = 0;
+
                     if (blob) {
                         // 建立新的 File 物件
                         const compressedFile = new File([blob], file.name, {
