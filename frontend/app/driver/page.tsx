@@ -177,6 +177,36 @@ function DriverContent() {
         e.target.value = ''; // 重置，允許再次選擇同一檔案
     };
 
+    // 手動完成訂單
+    const handleCompleteOrder = async (orderIndex: number) => {
+        if (!id) return;
+        if (!confirm('確定要標記此訂單為完成嗎？')) return;
+
+        try {
+            // 樂觀更新 (Optimistic UI Update)
+            setOrders(prev => {
+                const newOrders = [...prev];
+                if (newOrders[orderIndex]) {
+                    newOrders[orderIndex].status = 'done';
+                }
+                return newOrders;
+            });
+
+            const res = await fetch(`${API_URL}/api/complete-order`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ routeId: id, orderIndex })
+            });
+
+            if (!res.ok) throw new Error('Failed to update status');
+
+        } catch (e) {
+            console.error('Failed to complete order:', e);
+            alert('更新狀態失敗，請檢查網路');
+            // Revert state if needed (optional, keeping simple for now)
+        }
+    };
+
     if (loading) return (
         <div className="flex flex-col items-center justify-center min-h-screen text-gray-500 gap-3">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
@@ -246,15 +276,22 @@ function DriverContent() {
                                     </div>
                                 </div>
 
-                                {/* 照片狀態標籤 */}
-                                <div className={`px-3 py-1.5 rounded-full text-sm font-bold ${isDone
-                                    ? 'bg-green-100 text-green-700'
-                                    : photoCount > 0
-                                        ? 'bg-yellow-100 text-yellow-700'
-                                        : 'bg-gray-100 text-gray-400'
-                                    }`}>
+                                {/* 照片狀態標籤 (點擊可查看已拍) */}
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (photoCount > 0) viewDeliveryPhotos(i);
+                                    }}
+                                    disabled={photoCount === 0}
+                                    className={`px-3 py-1.5 rounded-full text-sm font-bold transition-all active:scale-95 ${isDone
+                                        ? 'bg-green-100 text-green-700'
+                                        : photoCount > 0
+                                            ? 'bg-yellow-100 text-yellow-700 cursor-pointer hover:bg-yellow-200 shadow-sm'
+                                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        }`}
+                                >
                                     📷 {photoCount}/16
-                                </div>
+                                </button>
                             </div>
 
                             {/* 訂單編號與發票號碼 */}
@@ -354,16 +391,23 @@ function DriverContent() {
                                         onChange={(e) => handleFileSelect(i, e)}
                                     />
 
+                                    {/* 完成按鈕 (取代原本的查看已拍) */}
                                     <button
-                                        onClick={() => viewDeliveryPhotos(i)}
-                                        disabled={photoCount === 0}
-                                        className={`py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 ${photoCount === 0
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'bg-purple-50 text-purple-600 hover:bg-purple-100'
+                                        onClick={() => handleCompleteOrder(i)}
+                                        disabled={isDone}
+                                        className={`py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 ${isDone
+                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed hidden' // 完成後隱藏按鈕，保持介面簡潔
+                                            : 'bg-green-50 text-green-600 hover:bg-green-100' // 改為綠色系
                                             }`}
                                     >
-                                        <ImageIcon className="w-4 h-4" />
-                                        查看已拍 ({photoCount})
+                                        {isDone ? (
+                                            '已完成'
+                                        ) : (
+                                            <>
+                                                <CheckCircle className="w-4 h-4" />
+                                                此件完成
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </div>
