@@ -358,6 +358,18 @@ export default function StoreAdmin() {
             font-weight: bold;
             color: #428bca;
           }
+          .quantity.clickable {
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          .quantity.clickable:hover {
+            background-color: #e6f7ff;
+          }
+          .quantity.checked {
+            background-color: #d4edda;
+            color: #155724;
+            border-radius: 4px;
+          }
           .footer {
             margin-top: 30px;
             padding: 15px;
@@ -420,12 +432,25 @@ export default function StoreAdmin() {
         </style>
       </head>
       <body>
+        <script>
+          function toggleCheck(cell) {
+            if (cell.classList.contains('checked')) {
+              cell.classList.remove('checked');
+              const text = cell.innerText.replace('✅ ', '');
+              cell.innerText = text;
+            } else {
+              cell.classList.add('checked');
+              const text = cell.innerText;
+              cell.innerText = '✅ ' + text;
+            }
+          }
+        </script>
         <button class="close-button" onclick="window.close()">← 關閉視窗</button>
         <button class="print-button" onclick="window.print()">🖨️ 列印 / 儲存 PDF</button>
         <div class="instruction">
           💡 <strong>提示：</strong><br>
-          列印完成後，請關閉此視窗<br>
-          返回主頁面生成派單連結
+          您可以點擊「數量」欄位來標記進度<br>
+          列印完成後，請關閉此視窗
         </div>
         
         <h1>備貨總表</h1>
@@ -451,14 +476,14 @@ export default function StoreAdmin() {
                 <thead>
                   <tr>
                     <th style="width: 70%">商品名稱</th>
-                    <th style="width: 30%">數量</th>
+                    <th style="width: 30%">數量 (點擊打勾)</th>
                   </tr>
                 </thead>
                 <tbody>
                   ${items.map((item: { name: string; quantity: string }) => `
                     <tr>
                       <td>${item.name}</td>
-                      <td class="quantity">${item.quantity}</td>
+                      <td class="quantity clickable" onclick="toggleCheck(this)">${item.quantity}</td>
                     </tr>
                   `).join('')}
                 </tbody>
