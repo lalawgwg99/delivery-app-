@@ -55,15 +55,16 @@ app.post('/api/analyze', async (c) => {
 		const prompt = customPrompt || `你是一個台灣物流路徑規劃專家。請分析這張收據或手寫單圖片。
       
       【重要指引】
-      請「忽略」：條碼、價格、店內代碼、商店名稱。
-      請「專注提取」以下欄位：
-      1. 客戶名 (Customer Name)
-      2. 電話 (Telephone)
-      3. 地址 (Address) - (從配送起點出發)，請做順路排序。若模糊請修正為正確行政區。
-      4. 配送時間 (Delivery Time)
-      5. 商品名稱與數量 (Product Name and Quantity) - 格式：「商品名稱 x數量」，多項用逗號分隔
-      6. 訂貨編號 (Order Number)
-      7. 發票號碼 (Invoice Number)
+      1. 請「忽略」：條碼、價格、店內代碼、商店名稱。
+      2. **核心過濾**：請特別忽略「單據最底部」的行銷文字、長篇注意事項、會員權益說明或無關的法律條文。這些通常位於地址和商品列表之後。
+      3. 請「專注提取」以下欄位：
+      - 客戶名 (Customer Name)
+      - 電話 (Telephone)
+      - 地址 (Address) - (從配送起點出發)，請做順路排序。若模糊請修正為正確行政區。
+      - 配送時間 (Delivery Time)
+      - 商品名稱與數量 (Product Name and Quantity) - 格式：「商品名稱 x數量」，多項用逗號分隔
+      - 訂貨編號 (Order Number)
+      - 發票號碼 (Invoice Number)
 
       請直接回傳純 JSON 格式，不要 Markdown。
       格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "商品A x2, 商品B x1", "orderNumber": "...", "invoiceNumber": "...", "note": "..." } ] }`;
