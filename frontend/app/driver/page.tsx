@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState, Suspense, useRef } from 'react';
-import { MapPin, CheckCircle, Navigation, Phone, FileText, X, Camera, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { MapPin, CheckCircle, Navigation, Phone, FileText, X, Camera, Image as ImageIcon, Loader2, Check } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { compressImage } from '../../utils/image-compression';
+import CanvasBackground from '../../components/CanvasBackground';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
 
@@ -220,9 +221,10 @@ function DriverContent() {
     const progress = Math.round((doneCount / orders.length) * 100);
 
     return (
-        <div className="min-h-screen bg-[#F2F4F6] p-4 max-w-md mx-auto font-sans pb-10">
+        <div className="min-h-screen bg-[var(--color-surface-bg)] p-4 max-w-md mx-auto font-sans pb-10 relative">
+            <CanvasBackground />
             {/* 頂部進度條 */}
-            <div className="bg-white px-5 py-4 rounded-2xl shadow-sm mb-5 sticky top-2 z-20 border border-gray-100/50 backdrop-blur-md bg-white/90">
+            <div className="bg-white px-5 py-4 rounded-[24px] soft-shadow mb-5 sticky top-2 z-20 border border-gray-100/50 backdrop-blur-md bg-white/90">
                 <div className="flex justify-between items-end mb-2">
                     <div>
                         <h1 className="text-xl font-black text-gray-800">🛵 今日配送</h1>
@@ -309,6 +311,20 @@ function DriverContent() {
                                     )}
                                 </div>
                             )}
+
+                            {/* Appliance Logistics AI Badges */}
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                {order.install_time_estimate && (
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-sm">
+                                        ⏱️ 預估: {order.install_time_estimate} 分
+                                    </span>
+                                )}
+                                {order.high_value_item && (
+                                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-red-50 text-red-700 border border-red-200 shadow-sm animate-pulse">
+                                        🛡️ 高價品 (需拍面板)
+                                    </span>
+                                )}
+                            </div>
 
                             {/* 商品資訊 */}
                             {order.items && (

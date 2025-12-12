@@ -5,6 +5,7 @@ import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, I
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { compressImage } from '../utils/image-compression';
 import { saveToDB, getFromDB, deleteFromDB } from '../utils/db';
+import CanvasBackground from '../components/CanvasBackground';
 
 // 解決 Next.js 在 Strict Mode 下與拖曳套件的兼容性問題
 const StrictModeDroppable = ({ children, ...props }: any) => {
@@ -528,9 +529,10 @@ export default function StoreAdmin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F2F2F7] font-sans pb-32">
+    <div className="min-h-screen bg-[var(--color-surface-bg)] font-sans pb-32 relative">
+      <CanvasBackground />
       {/* iOS Style Header with Blur */}
-      <header className="sticky top-0 z-50 bg-[#F2F2F7]/80 backdrop-blur-xl border-b border-gray-200/50 px-5 py-4 transition-all">
+      <header className="sticky top-0 z-50 bg-[var(--color-surface-bg)]/80 backdrop-blur-xl border-b border-gray-200/50 px-5 py-4 transition-all">
         <div className="flex items-center justify-between max-w-md mx-auto">
           <div className="flex flex-col">
             <h1 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight">RouteSnap</h1>
@@ -802,6 +804,17 @@ export default function StoreAdmin() {
                                   )}
 
                                   {/* Smart Cargo Tags */}
+                                  {/* Appliance Logistics AI Badges */}
+                                  {order.install_time_estimate && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                      ⏱️ 預估 {order.install_time_estimate} 分
+                                    </span>
+                                  )}
+                                  {order.high_value_item && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-red-50 text-red-700 border border-red-200 animate-pulse">
+                                      🛡️ 高價品 (需拍面板)
+                                    </span>
+                                  )}
                                   {order.tags && order.tags.includes('tv_fragile') && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-red-50 text-red-600 border border-red-100">
                                       📺 小心螢幕
