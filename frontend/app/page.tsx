@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { compressImage } from '../utils/image-compression';
 import { saveToDB, getFromDB, deleteFromDB } from '../utils/db';
 import CanvasBackground from '../components/CanvasBackground';
+import { playClickSound, playSuccessSound } from '../utils/sound';
 
 // 解決 Next.js 在 Strict Mode 下與拖曳套件的兼容性問題
 const StrictModeDroppable = ({ children, ...props }: any) => {
@@ -620,9 +621,8 @@ export default function StoreAdmin() {
         {/* 狀態 1-B: 初始拍照區 (僅在無訂單且非載入中時顯示) */}
         {!routeId && orders.length === 0 && !loading && (
           <div
-            onClick={() => fileInputRef.current?.click()}
-            className="group relative overflow-hidden bg-white rounded-[20px] p-8 text-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-gray-100 transition-all active:scale-[0.98] cursor-pointer"
-          >
+            onClick={() => { playClickSound(); fileInputRef.current?.click(); }}
+            className="group relative overflow-hidden bg-white rounded-[24px] p-8 text-center soft-shadow border border-gray-100/50 transition-all active:scale-[0.98] cursor-pointer hover:border-[var(--color-aqua-200)] hover:shadow-lg">
             <div className="py-2">
               <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
                 <Camera className="w-8 h-8 text-blue-600" />
@@ -661,7 +661,7 @@ export default function StoreAdmin() {
                 <div>
                   <h4 className="font-bold text-gray-900 mb-1">1. 拍攝訂單</h4>
                   <p className="text-sm text-gray-500 leading-relaxed">
-                    點擊上方相機圖示，一次可選 <span className="text-blue-600 font-bold">2-50 張</span> 照片。AI 會自動辨識地址並排序。
+                    點擊上方相機圖示，一次可選 <span className="text-blue-600 font-bold">2-15 張</span> 照片。AI 會自動辨識地址並排序。
                   </p>
                 </div>
               </div>
