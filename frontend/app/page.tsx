@@ -567,34 +567,44 @@ export default function StoreAdmin() {
           </div>
         )}
 
-        {/* 狀態 1: 拍照區 (僅在無訂單時顯示，有訂單後改用底部按鈕) */}
-        {!routeId && orders.length === 0 && (
-          <div
-            onClick={() => !loading && fileInputRef.current?.click()}
-            className={`group relative overflow-hidden bg-white rounded-[20px] p-8 text-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-gray-100 transition-all active:scale-[0.98] ${loading ? 'opacity-80' : 'cursor-pointer'}`}
-          >
-            {loading ? (
-              <div className="py-8">
-                <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto mb-4" />
-                <p className="text-gray-500 font-medium">AI 正在分析第 {processingIndex + 1}/{uploadQueue.length} 張...</p>
+        {/* 狀態 1-A: 載入/處理中 (獨立顯示，覆蓋在上方或插入列表頭部) */}
+        {loading && (
+          <div className="bg-white rounded-[20px] p-8 text-center shadow-sm border border-blue-100 mb-4 animate-in fade-in zoom-in">
+            <div className="py-4">
+              <Loader2 className="w-10 h-10 text-blue-500 animate-spin mx-auto mb-4" />
+              <p className="text-gray-500 font-medium">
+                {uploadQueue.length > 0
+                  ? `AI 正在分析第 ${processingIndex + 1}/${uploadQueue.length} 張...`
+                  : '正在處理中...'
+                }
+              </p>
+              {uploadQueue.length > 0 && (
                 <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
                   <div
                     className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${((processingIndex + 1) / uploadQueue.length) * 100}%` }}
                   ></div>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 狀態 1-B: 初始拍照區 (僅在無訂單且非載入中時顯示) */}
+        {!routeId && orders.length === 0 && !loading && (
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            className="group relative overflow-hidden bg-white rounded-[20px] p-8 text-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-gray-100 transition-all active:scale-[0.98] cursor-pointer"
+          >
+            <div className="py-2">
+              <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
+                <Camera className="w-8 h-8 text-blue-600" />
               </div>
-            ) : (
-              <div className="py-2">
-                <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
-                  <Camera className="w-8 h-8 text-blue-600" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">拍攝訂單</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  開啟相機或上傳圖片<br />支援批量上傳 2-15 張<br />AI 自動辨識地址並排序
-                </p>
-              </div>
-            )}
+              <h3 className="text-xl font-bold text-gray-900 mb-2">拍攝訂單</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">
+                開啟相機或上傳圖片<br />支援批量上傳 2-15 張<br />AI 自動辨識地址並排序
+              </p>
+            </div>
             <input
               type="file"
               ref={fileInputRef}
