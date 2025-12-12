@@ -72,7 +72,7 @@ app.post('/api/analyze', async (c) => {
       - 若有「店備註 (Store Note)」或「其它備註」，請提取為 note
 
       **區塊 4：家電貨物感知 (Smart Cargo Intelligence)**
-      - 分析上述提取的商品名稱，判斷是否屬於以下類別，並回傳 `tags` 陣列：
+      - 分析上述提取的商品名稱，判斷是否屬於以下類別，並回傳 'tags' 陣列：
         1. **TV/螢幕** (電視, 顯示器, Monitor, LED, OLED) -> tag: 'tv_fragile'
         2. **冰箱/冷凍櫃** (Fridge, Freezer, 冰箱) -> tag: 'fridge_upright'
         3. **洗衣機/乾衣機** (Washer, Dryer, 洗衣機) -> tag: 'washer_install'
