@@ -70,13 +70,21 @@ app.post('/api/analyze', async (c) => {
       - 尋找對應的「訂貨數」或「Qty」
       - **格式要求**：請將所有商品合併為一個字串，格式為「商品A x數量, 商品B x數量」
       - 若有「店備註 (Store Note)」或「其它備註」，請提取為 note
+
+      **區塊 4：家電貨物感知 (Smart Cargo Intelligence)**
+      - 分析上述提取的商品名稱，判斷是否屬於以下類別，並回傳 `tags` 陣列：
+        1. **TV/螢幕** (電視, 顯示器, Monitor, LED, OLED) -> tag: `tv_fragile`
+        2. **冰箱/冷凍櫃** (Fridge, Freezer, 冰箱) -> tag: `fridge_upright`
+        3. **洗衣機/乾衣機** (Washer, Dryer, 洗衣機) -> tag: `washer_install`
+        4. **冷氣/空調** (AC, Air Conditioner, 冷氣) -> tag: `ac_heavy`
+      - 判斷是否包含回收服務 (回收, 舊機, 廢四機) -> tag: `recycle_required`
       
       **【重要：排除區域】**
       - **嚴格忽略**：商品列表下方的「注意事項」、「Note」、「消費者簽名」、「廢四機回收」等法律條文或長篇文字。
       - 一旦提取完商品和備註，請立刻停止，不要往下讀取底部的公司資訊或個資聲明。
 
       請直接回傳純 JSON 格式，不要 Markdown。
-      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "...", "orderNumber": "...", "invoiceNumber": "...", "note": "..." } ] }`;
+      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "...", "orderNumber": "...", "invoiceNumber": "...", "note": "...", "tags": ["tv_fragile", "recycle_required"] } ] }`;
 
 		const result = await model.generateContent([
 			prompt,
@@ -409,6 +417,37 @@ app.post('/api/upload-delivery-photo', async (c) => {
 
 	} catch (e: any) {
 		console.error('Error uploading delivery photo:', e);
+		return c.json({ success: false, error: e.message }, 500);
+	}
+});
+
+// 9.5 標記訂單為完成
+app.post('/api/complete-order', async (c) => {
+	try {
+		const body = await c.req.json();
+		const { routeId, orderIndex } = body;
+
+		if (!routeId || orderIndex === undefined) {
+			return c.json({ success: false, error: 'Missing routeId or orderIndex' }, 400);
+		}
+
+		console.log('Completing order:', routeId, orderIndex);
+
+		const orderData = await c.env.ORDERS_DB.get(routeId);
+		if (orderData) {
+			const order = JSON.parse(orderData);
+			if (order.orders && order.orders[parseInt(orderIndex)]) {
+				// 設定狀態為 done
+				order.orders[parseInt(orderIndex)].status = 'done';
+
+				// 寫回 KV
+				await c.env.ORDERS_DB.put(routeId, JSON.stringify(order));
+				return c.json({ success: true });
+			}
+		}
+		return c.json({ success: false, error: 'Order not found' }, 404);
+	} catch (e: any) {
+		console.error('Error completing order:', e);
 		return c.json({ success: false, error: e.message }, 500);
 	}
 });

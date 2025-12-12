@@ -800,6 +800,33 @@ export default function StoreAdmin() {
                                       發票 {order.invoiceNumber}
                                     </span>
                                   )}
+
+                                  {/* Smart Cargo Tags */}
+                                  {order.tags && order.tags.includes('tv_fragile') && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-red-50 text-red-600 border border-red-100">
+                                      📺 小心螢幕
+                                    </span>
+                                  )}
+                                  {order.tags && order.tags.includes('fridge_upright') && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-sky-50 text-sky-600 border border-sky-100">
+                                      ❄️ 直立搬運
+                                    </span>
+                                  )}
+                                  {order.tags && order.tags.includes('recycle_required') && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                                      ♻️ 需回收
+                                    </span>
+                                  )}
+                                  {order.tags && order.tags.includes('washer_install') && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                      🛠️ 需安裝
+                                    </span>
+                                  )}
+                                  {order.tags && order.tags.includes('ac_heavy') && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                                      🔋 室外機
+                                    </span>
+                                  )}
                                 </div>
                               </div>
 
