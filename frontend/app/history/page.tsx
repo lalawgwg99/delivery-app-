@@ -138,41 +138,50 @@ export default function HistoryPage() {
         return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
     };
 
-    // 密碼輸入頁面
+    // 密碼輸入頁面 (Vitality)
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl p-8 shadow-lg max-w-sm w-full">
-                    <div className="text-center mb-6">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Lock className="w-8 h-8 text-blue-600" />
+            <div className="min-h-screen bg-[var(--color-surface-bg)] flex items-center justify-center p-6">
+                <div className="bg-white rounded-[32px] p-10 soft-shadow max-w-sm w-full animate-in zoom-in duration-300">
+                    <div className="text-center mb-8">
+                        <div className="w-20 h-20 bg-[var(--color-aqua-50)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm">
+                            <Lock className="w-8 h-8 text-[var(--color-aqua-500)]" />
                         </div>
-                        <h1 className="text-xl font-bold text-gray-900">歷史記錄查詢</h1>
-                        <p className="text-gray-500 text-sm mt-2">請輸入查詢密碼</p>
+                        <h1 className="text-2xl font-bold text-slate-800">歷史記錄查詢</h1>
+                        <p className="text-slate-400 text-sm mt-2 font-medium">請輸入管理員密碼以繼續</p>
                     </div>
 
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && verifyPassword()}
-                        placeholder="請輸入密碼"
-                        className="w-full px-4 py-3 border border-gray-200 rounded-xl mb-4 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                    />
+                    <div className="space-y-4">
+                        <input
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && verifyPassword()}
+                            placeholder="輸入密碼..."
+                            className="w-full px-6 py-4 bg-slate-50 border-none rounded-[20px] focus:ring-2 focus:ring-[var(--color-aqua-400)] text-slate-800 placeholder-slate-400 outline-none transition-all font-bold text-lg text-center tracking-widest"
+                        />
 
-                    {error && (
-                        <p className="text-red-500 text-sm text-center mb-4">{error}</p>
-                    )}
+                        {error && (
+                            <div className="bg-red-50 text-red-500 px-4 py-3 rounded-xl text-sm text-center font-bold animate-pulse">
+                                ⚠️ {error}
+                            </div>
+                        )}
 
-                    <button
-                        onClick={verifyPassword}
-                        disabled={loading || !password}
-                        className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold disabled:bg-gray-300 disabled:cursor-not-allowed"
-                    >
-                        {loading ? '驗證中...' : '確認'}
-                    </button>
+                        <button
+                            onClick={verifyPassword}
+                            disabled={loading || !password}
+                            className="w-full bg-gradient-to-r from-[var(--color-aqua-500)] to-[var(--color-aqua-400)] text-white py-4 rounded-[20px] font-bold text-lg shadow-lg shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-105 active:scale-[0.98] transition-all"
+                        >
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin"></span>
+                                    驗證中...
+                                </span>
+                            ) : '確認進入'}
+                        </button>
+                    </div>
 
-                    <Link href="/" className="block text-center text-blue-600 mt-4 text-sm">
+                    <Link href="/" className="block text-center text-slate-400 mt-8 text-sm font-bold hover:text-[var(--color-aqua-600)] transition-colors">
                         ← 返回首頁
                     </Link>
                 </div>
@@ -180,46 +189,54 @@ export default function HistoryPage() {
         );
     }
 
-    // 查看詳情彈窗
+    // 查看詳情彈窗 (Vitality)
     if (viewingDetail) {
         return (
-            <div className="min-h-screen bg-[#F2F2F7] p-4">
-                <div className="max-w-md mx-auto">
+            <div className="min-h-screen bg-[var(--color-surface-bg)] p-4 font-sans">
+                <div className="max-w-md mx-auto pt-2">
                     <button
                         onClick={() => setViewingDetail(null)}
-                        className="flex items-center gap-2 text-blue-600 mb-4"
+                        className="flex items-center gap-2 text-slate-500 font-bold mb-6 hover:text-[var(--color-aqua-600)] transition-colors pl-2"
                     >
-                        <ArrowLeft className="w-5 h-5" />
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                            <ArrowLeft className="w-5 h-5" />
+                        </div>
                         返回列表
                     </button>
 
-                    <div className="bg-white rounded-2xl p-6 shadow-sm">
-                        <h2 className="text-lg font-bold mb-4">訂單詳情</h2>
-                        <p className="text-sm text-gray-500 mb-4">ID: {viewingDetail.routeId}</p>
+                    <div className="bg-white rounded-[32px] p-6 soft-shadow animate-in slide-in-from-right-4 duration-300">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-slate-800">訂單詳情</h2>
+                            <span className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-1 rounded-lg">ID: {viewingDetail.routeId}</span>
+                        </div>
 
                         <div className="space-y-4">
                             {viewingDetail.orders.map((order, idx) => (
-                                <div key={idx} className="border-b border-gray-100 pb-4 last:border-0">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${order.deliveryPhotoCount && order.deliveryPhotoCount >= 2 ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'}`}>
+                                <div key={idx} className="bg-slate-50/50 rounded-[20px] p-4 border border-slate-100">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow-sm ${order.deliveryPhotoCount && order.deliveryPhotoCount >= 2
+                                                ? 'bg-[#22C55E] text-white shadow-green-500/20'
+                                                : 'bg-gradient-to-br from-[var(--color-aqua-400)] to-[var(--color-aqua-600)] text-white shadow-cyan-500/20'}`}>
                                                 {order.deliveryPhotoCount && order.deliveryPhotoCount >= 2 ? '✓' : idx + 1}
                                             </span>
-                                            <span className="font-bold">{order.customer || '未命名'}</span>
+                                            <span className="font-bold text-slate-800 text-lg">{order.customer || '未命名'}</span>
                                         </div>
                                         {order.deliveryPhotoCount && order.deliveryPhotoCount > 0 && (
                                             <a
                                                 href={`/driver?id=${viewingDetail.routeId}`}
                                                 target="_blank"
-                                                className="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-full"
+                                                className="flex items-center gap-1 text-xs bg-[var(--color-surface-bg)] text-[var(--color-aqua-600)] px-3 py-1.5 rounded-full font-bold border border-[var(--color-aqua-100)]"
                                             >
-                                                📷 {order.deliveryPhotoCount} 張照片
+                                                📷 {order.deliveryPhotoCount}
                                             </a>
                                         )}
                                     </div>
-                                    {order.phone && <p className="text-sm text-gray-600">📞 {order.phone}</p>}
-                                    {order.address && <p className="text-sm text-gray-600">📍 {order.address}</p>}
-                                    {order.items && <p className="text-sm text-gray-600">📦 {order.items}</p>}
+                                    <div className="space-y-1 pl-11">
+                                        {order.phone && <p className="text-sm text-slate-500 font-medium tracking-wide">📞 {order.phone}</p>}
+                                        {order.address && <p className="text-sm text-slate-700 font-bold leading-snug">{order.address}</p>}
+                                        {order.items && <p className="text-sm text-slate-500 mt-2 bg-white p-2 rounded-xl border border-slate-100">📦 {order.items}</p>}
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -229,84 +246,94 @@ export default function HistoryPage() {
         );
     }
 
-    // 歷史列表頁面
+    // 歷史列表頁面 (Vitality)
     return (
-        <div className="min-h-screen bg-[#F2F2F7]">
+        <div className="min-h-screen bg-[var(--color-surface-bg)] font-sans">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-200 px-5 py-4">
+            <header className="sticky top-0 z-50 bg-[var(--color-surface-bg)]/90 backdrop-blur-xl px-5 py-4 transition-all">
                 <div className="flex items-center justify-between max-w-md mx-auto">
-                    <Link href="/" className="text-blue-600">
-                        <ArrowLeft className="w-6 h-6" />
+                    <Link href="/" className="w-10 h-10 flex items-center justify-center rounded-full bg-white text-slate-600 shadow-sm hover:text-[var(--color-aqua-600)] transition-colors">
+                        <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-lg font-bold">歷史記錄</h1>
-                    <div className="w-6" />
+                    <h1 className="text-lg font-bold text-slate-800">歷史記錄</h1>
+                    <div className="w-10" />
                 </div>
             </header>
 
-            <main className="max-w-md mx-auto p-4">
+            <main className="max-w-md mx-auto p-5 pt-2 pb-24">
                 {/* 日期選擇 */}
-                <div className="flex items-center gap-3 mb-4">
-                    <Calendar className="w-5 h-5 text-gray-500" />
+                <div className="bg-white p-2 rounded-[24px] soft-shadow mb-6 flex items-center">
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-surface-bg)] flex items-center justify-center text-[var(--color-aqua-600)] mr-2">
+                        <Calendar className="w-5 h-5" />
+                    </div>
                     <input
                         type="date"
                         value={selectedDate}
                         onChange={(e) => setSelectedDate(e.target.value)}
-                        className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="flex-1 bg-transparent border-none text-slate-800 font-bold text-lg focus:ring-0 cursor-pointer"
                     />
                 </div>
 
                 {/* 記錄列表 */}
                 {loading ? (
-                    <div className="text-center py-8 text-gray-500">載入中...</div>
+                    <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
+                        <div className="w-8 h-8 border-4 border-[var(--color-aqua-200)] border-t-[var(--color-aqua-500)] rounded-full animate-spin"></div>
+                        <p className="font-medium">載入中...</p>
+                    </div>
                 ) : records.length === 0 ? (
-                    <div className="text-center py-8 text-gray-500">
-                        當日無派單記錄
+                    <div className="flex flex-col items-center justify-center py-20 text-slate-300">
+                        <Package className="w-16 h-16 mb-4 opacity-20" />
+                        <p className="font-bold text-lg">無派單記錄</p>
                     </div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         {records.map((record) => (
                             <div
                                 key={record.routeId}
-                                className="bg-white rounded-2xl p-4 shadow-sm"
+                                className="bg-white rounded-[28px] p-5 soft-shadow hover:shadow-lg transition-all"
                             >
-                                <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-3">
                                     <div className="flex items-center gap-2">
-                                        <Clock className="w-4 h-4 text-gray-400" />
-                                        <span className="font-medium">{formatTime(record.createdAt)}</span>
+                                        <div className="bg-[var(--color-aqua-50)] p-1.5 rounded-lg">
+                                            <Clock className="w-4 h-4 text-[var(--color-aqua-600)]" />
+                                        </div>
+                                        <span className="font-bold text-slate-800 text-lg">{formatTime(record.createdAt)}</span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-sm text-gray-500">
+                                    <div className="flex items-center gap-1.5 text-sm font-bold text-slate-500 bg-slate-50 px-3 py-1 rounded-full">
                                         <Package className="w-4 h-4" />
-                                        <span>{record.orderCount} 筆訂單</span>
+                                        <span>{record.orderCount} 單</span>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2">
+                                <div className="flex gap-3">
                                     <button
                                         onClick={() => copyLink(record.routeId)}
-                                        className="flex-1 flex items-center justify-center gap-2 py-2 bg-gray-100 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+                                        className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-[18px] text-sm font-bold transition-all ${copiedId === record.routeId
+                                            ? 'bg-green-50 text-green-600'
+                                            : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
                                     >
                                         {copiedId === record.routeId ? (
                                             <>
-                                                <Check className="w-4 h-4 text-green-600" />
-                                                <span className="text-green-600">已複製</span>
+                                                <Check className="w-4 h-4" />
+                                                已複製
                                             </>
                                         ) : (
                                             <>
                                                 <Copy className="w-4 h-4" />
-                                                <span>複製</span>
+                                                複製連結
                                             </>
                                         )}
                                     </button>
                                     <button
                                         onClick={() => viewDetail(record.routeId)}
-                                        className="flex-1 flex items-center justify-center gap-2 py-2 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium hover:bg-blue-100 transition-colors"
+                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--color-aqua-50)] text-[var(--color-aqua-700)] rounded-[18px] text-sm font-bold hover:bg-[var(--color-aqua-100)] transition-colors"
                                     >
                                         <Eye className="w-4 h-4" />
                                         <span>詳情</span>
                                     </button>
                                     <button
                                         onClick={() => deleteRecord(record.routeId)}
-                                        className="py-2 px-3 bg-red-50 text-red-600 rounded-xl text-sm font-medium hover:bg-red-100 transition-colors"
+                                        className="py-3 px-4 bg-red-50 text-red-500 rounded-[18px] hover:bg-red-100 transition-colors"
                                     >
                                         🗑️
                                     </button>

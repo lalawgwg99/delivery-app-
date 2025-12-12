@@ -73,11 +73,11 @@ app.post('/api/analyze', async (c) => {
 
       **區塊 4：家電貨物感知 (Smart Cargo Intelligence)**
       - 分析上述提取的商品名稱，判斷是否屬於以下類別，並回傳 `tags` 陣列：
-        1. **TV/螢幕** (電視, 顯示器, Monitor, LED, OLED) -> tag: `tv_fragile`
-        2. **冰箱/冷凍櫃** (Fridge, Freezer, 冰箱) -> tag: `fridge_upright`
-        3. **洗衣機/乾衣機** (Washer, Dryer, 洗衣機) -> tag: `washer_install`
-        4. **冷氣/空調** (AC, Air Conditioner, 冷氣) -> tag: `ac_heavy`
-      - 判斷是否包含回收服務 (回收, 舊機, 廢四機) -> tag: `recycle_required`
+        1. **TV/螢幕** (電視, 顯示器, Monitor, LED, OLED) -> tag: 'tv_fragile'
+        2. **冰箱/冷凍櫃** (Fridge, Freezer, 冰箱) -> tag: 'fridge_upright'
+        3. **洗衣機/乾衣機** (Washer, Dryer, 洗衣機) -> tag: 'washer_install'
+        4. **冷氣/空調** (AC, Air Conditioner, 冷氣) -> tag: 'ac_heavy'
+      - 判斷是否包含回收服務 (回收, 舊機, 廢四機) -> tag: 'recycle_required'
       
       **【重要：排除區域】**
       - **嚴格忽略**：商品列表下方的「注意事項」、「Note」、「消費者簽名」、「廢四機回收」等法律條文或長篇文字。
