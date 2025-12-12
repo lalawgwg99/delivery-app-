@@ -715,12 +715,12 @@ export default function StoreAdmin() {
           </div>
         )}
 
-        {/* 狀態 2: 編輯與排序列表 */}
+        {/* 狀態 2: 編輯與排序列表 (Vitality Style) */}
         {orders.length > 0 && !routeId && (
-          <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
-            <div className="flex items-center justify-between mb-3 px-2">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">配送順序 ({orders.length})</h2>
-              <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">長按拖曳排序</span>
+          <div className="animate-in fade-in slide-in-from-bottom-6 duration-500 pb-24">
+            <div className="flex items-center justify-between mb-4 px-2">
+              <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest">配送順序 ({orders.length})</h2>
+              <span className="text-xs font-medium text-[var(--color-aqua-600)] bg-[var(--color-aqua-50)] px-3 py-1 rounded-full">長按拖曳排序</span>
             </div>
 
             <DragDropContext onDragEnd={onDragEnd}>
@@ -729,7 +729,7 @@ export default function StoreAdmin() {
                   <div
                     {...provided.droppableProps}
                     ref={provided.innerRef}
-                    className="space-y-3"
+                    className="space-y-4"
                   >
                     {orders.map((order, index) => (
                       <Draggable key={order.id || index} draggableId={order.id || String(index)} index={index}>
@@ -737,90 +737,87 @@ export default function StoreAdmin() {
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            className={`relative bg-white rounded-[18px] p-4 shadow-sm border transition-all ${snapshot.isDragging
-                              ? 'shadow-xl scale-105 border-blue-500 z-50 rotate-1'
-                              : 'border-transparent hover:border-gray-200'
+                            className={`relative bg-white rounded-[24px] p-5 transition-all ${snapshot.isDragging
+                              ? 'shadow-2xl scale-105 z-50 rotate-1 ring-2 ring-[var(--color-aqua-400)]'
+                              : 'soft-shadow hover:shadow-md'
                               }`}
                           >
-                            <div className="flex items-start gap-3">
-                              {/* 拖曳手把 */}
-                              <div
-                                {...provided.dragHandleProps}
-                                className="mt-2 text-gray-300 active:text-blue-500 touch-none"
-                              >
-                                <GripVertical className="w-6 h-6" />
+                            <div className="flex items-start gap-4">
+                              {/* Index Avatar */}
+                              <div className="flex-shrink-0">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--color-aqua-400)] to-[var(--color-aqua-600)] flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-cyan-500/30">
+                                  {index + 1}
+                                </div>
                               </div>
 
                               {/* 內容編輯區 */}
-                              <div className="flex-1 min-w-0 space-y-2">
-                                {/* 序號與客戶名稱 */}
-                                <div className="flex items-center gap-2">
-                                  <span className="flex items-center justify-center w-5 h-5 bg-blue-600 text-white text-xs font-bold rounded-full flex-shrink-0">
-                                    {index + 1}
-                                  </span>
+                              <div className="flex-1 min-w-0 space-y-1">
+                                {/* 客戶名稱與電話 */}
+                                <div className="flex items-center justify-between">
                                   <input
                                     value={order.customer || ''}
                                     placeholder="輸入客戶名稱..."
                                     onChange={(e) => updateOrder(index, 'customer', e.target.value)}
-                                    className="block w-full text-base font-bold text-gray-900 placeholder-gray-300 bg-transparent border-none focus:ring-0 p-0"
+                                    className="block w-full text-lg font-bold text-slate-800 placeholder-slate-300 bg-transparent border-none focus:ring-0 p-0"
                                   />
                                 </div>
 
-                                {/* 電話號碼 */}
                                 {order.phone && (
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <span className="text-gray-400">📞</span>
+                                  <div className="flex items-center gap-2 text-sm text-slate-500">
+                                    <span className="opacity-50">📞</span>
                                     <input
                                       value={order.phone || ''}
                                       placeholder="電話號碼"
                                       onChange={(e) => updateOrder(index, 'phone', e.target.value)}
-                                      className="block w-full text-gray-700 bg-transparent border-none focus:ring-0 p-0"
+                                      className="block w-full bg-transparent border-none focus:ring-0 p-0 text-slate-600 font-medium"
                                     />
                                   </div>
                                 )}
 
-                                {/* 訂單編號與發票號碼 */}
-                                <div className="flex gap-2 text-xs">
+                                {/* 地址編輯 */}
+                                <div className="pt-2">
+                                  <div className="flex items-start gap-2 bg-[var(--color-surface-bg)] rounded-xl p-3">
+                                    <MapPin className="w-4 h-4 text-[var(--color-aqua-500)] mt-0.5 flex-shrink-0" />
+                                    <textarea
+                                      value={order.address || ''}
+                                      placeholder="輸入完整地址..."
+                                      rows={2}
+                                      onChange={(e) => updateOrder(index, 'address', e.target.value)}
+                                      className="block w-full text-[14px] leading-relaxed text-slate-600 bg-transparent border-none focus:ring-0 p-0 resize-none placeholder-slate-400"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* 標籤區 */}
+                                <div className="flex flex-wrap gap-2 pt-1">
                                   {order.orderNumber && (
-                                    <span className="bg-purple-50 text-purple-700 px-2 py-1 rounded">
-                                      單號: {order.orderNumber}
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-purple-50 text-purple-700">
+                                      #{order.orderNumber}
                                     </span>
                                   )}
                                   {order.invoiceNumber && (
-                                    <span className="bg-green-50 text-green-700 px-2 py-1 rounded">
-                                      發票: {order.invoiceNumber}
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700">
+                                      發票 {order.invoiceNumber}
                                     </span>
                                   )}
                                 </div>
-
-                                {/* 地址編輯 */}
-                                <div className="flex items-start gap-2">
-                                  <MapPin className="w-4 h-4 text-gray-400 mt-1 flex-shrink-0" />
-                                  <textarea
-                                    value={order.address || ''}
-                                    placeholder="輸入完整地址..."
-                                    rows={2}
-                                    onChange={(e) => updateOrder(index, 'address', e.target.value)}
-                                    className="block w-full text-[15px] leading-snug text-gray-600 bg-gray-50 rounded-lg border-none focus:ring-2 focus:ring-blue-500/20 px-2 py-1.5 resize-none"
-                                  />
-                                </div>
-
-                                {/* 來源圖片 */}
-                                {order.sourceImage && (
-                                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                                    <ImageIcon className="w-3 h-3" />
-                                    <span>{order.sourceImage}</span>
-                                  </div>
-                                )}
                               </div>
 
-                              {/* 刪除按鈕 */}
-                              <button
-                                onClick={() => removeOrder(index)}
-                                className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
-                              >
-                                <X className="w-5 h-5" />
-                              </button>
+                              {/* 拖曳手把與刪除 */}
+                              <div className="flex flex-col items-center gap-2">
+                                <button
+                                  onClick={() => removeOrder(index)}
+                                  className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors"
+                                >
+                                  <X className="w-5 h-5" />
+                                </button>
+                                <div
+                                  {...provided.dragHandleProps}
+                                  className="p-2 text-slate-300 hover:text-[var(--color-aqua-500)] cursor-grab active:cursor-grabbing touch-none"
+                                >
+                                  <GripVertical className="w-5 h-5" />
+                                </div>
+                              </div>
                             </div>
                           </div>
                         )}
@@ -832,63 +829,65 @@ export default function StoreAdmin() {
               </StrictModeDroppable>
             </DragDropContext>
 
-            {/* 底部浮動按鈕區 */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-lg border-t border-gray-200">
+            {/* 底部浮動按鈕區 (Glassmorphism) */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 z-40">
               <div className="max-w-md mx-auto">
-                {/* 上排：追加上傳 */}
-                <div className="flex gap-3 mb-3">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex-1 py-3 rounded-xl font-bold text-orange-600 bg-orange-50 active:bg-orange-100 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <Camera className="w-5 h-5" />
-                    ➕ 追加上傳
-                  </button>
-                </div>
-                {/* 下排：備貨總表 + 生成連結 */}
-                <div className="flex gap-3">
-                  <button
-                    onClick={generatePickingListPDF}
-                    className="px-4 py-3.5 rounded-xl font-bold text-blue-600 bg-blue-50 active:bg-blue-100 transition-colors flex items-center gap-2"
-                  >
-                    <FileText className="w-5 h-5" />
-                    備貨總表
-                  </button>
-                  <button
-                    onClick={createLink}
-                    className="flex-1 bg-gray-900 text-white py-3.5 rounded-xl font-bold text-lg shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                  >
-                    <Share2 className="w-5 h-5" />
-                    生成派單連結
-                  </button>
+                <div className="glass-panel p-2 rounded-[28px] shadow-2xl shadow-blue-900/10">
+                  <div className="flex items-center gap-2">
+                    {/* 更多功能 Dropdown or inline buttons */}
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-[var(--color-surface-bg)] text-[var(--color-aqua-600)] hover:bg-[var(--color-aqua-50)] transition-colors"
+                      title="追加上傳"
+                    >
+                      <Camera className="w-5 h-5" />
+                    </button>
+
+                    <button
+                      onClick={generatePickingListPDF}
+                      className="w-12 h-12 flex items-center justify-center rounded-full bg-[var(--color-surface-bg)] text-slate-600 hover:bg-slate-100 transition-colors"
+                      title="備貨表"
+                    >
+                      <FileText className="w-5 h-5" />
+                    </button>
+
+                    {/* 主按鈕: 生成連結 */}
+                    <button
+                      onClick={createLink}
+                      className="flex-1 bg-gradient-to-r from-[var(--color-aqua-500)] to-[var(--color-aqua-400)] text-white h-12 rounded-full font-bold text-lg shadow-lg shadow-cyan-500/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                    >
+                      <Share2 className="w-5 h-5" />
+                      生成派單連結
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* 狀態 3: 分享成功頁 */}
+        {/* 狀態 3: 分享成功頁 (Vitality Style) */}
         {routeId && (
-          <div className="bg-white rounded-[24px] p-8 shadow-[0_8px_30px_rgba(0,0,0,0.06)] text-center animate-in zoom-in duration-300 mt-4">
-            <div className="w-20 h-20 bg-[#34C759]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Share2 className="w-10 h-10 text-[#34C759]" />
+          <div className="bg-white rounded-[32px] p-8 soft-shadow text-center animate-in zoom-in duration-300 mt-4 border border-[var(--color-aqua-100)]">
+            <div className="w-24 h-24 bg-[var(--color-aqua-50)] rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <Share2 className="w-12 h-12 text-[var(--color-aqua-500)]" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">準備完成！</h2>
+            <h2 className="text-3xl font-bold text-slate-800 mb-2">準備完成！</h2>
 
             {/* 顯示訂單數量 */}
-            <div className="bg-blue-50 text-blue-700 px-4 py-2 rounded-full inline-block mb-4">
+            <div className="bg-[var(--color-surface-bg)] text-[var(--color-aqua-600)] px-5 py-2 rounded-full inline-block mb-6 font-bold border border-[var(--color-aqua-100)]">
               📦 本次共 {orders.length} 筆訂單
             </div>
 
-            <p className="text-gray-500 mb-6 leading-relaxed">
+            <p className="text-slate-500 mb-8 leading-relaxed text-lg">
               路線已建立並儲存<br />請將連結傳送給外送員
             </p>
 
             <button
               onClick={shareToLine}
-              className="w-full bg-[#06C755] text-white py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-green-500/20 active:brightness-90 transition-all"
+              className="w-full bg-[#06C755] text-white py-4 rounded-[20px] font-bold text-xl flex items-center justify-center gap-3 shadow-lg shadow-[#06C755]/20 active:brightness-90 transition-all mb-4"
             >
-              LINE 一鍵傳送
+              <span className="text-2xl">LINE</span> 一鍵傳送
             </button>
 
             <button
@@ -896,25 +895,27 @@ export default function StoreAdmin() {
                 navigator.clipboard.writeText(driverLink);
                 alert('連結已複製');
               }}
-              className="mt-4 w-full bg-gray-50 text-gray-600 py-4 rounded-xl font-bold hover:bg-gray-100 transition-colors"
+              className="w-full bg-slate-100/50 text-slate-600 py-4 rounded-[20px] font-bold text-lg hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
             >
+              <FileText className="w-5 h-5 opacity-50" />
               複製連結
             </button>
 
             {/* 繼續上傳和建立新單 */}
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-8 pt-6 border-t border-slate-100">
               <button
                 onClick={() => {
                   setRouteId('');
                   // 保留現有訂單，返回編輯頁面繼續上傳
                 }}
-                className="flex-1 bg-orange-50 text-orange-600 py-3 rounded-xl font-bold hover:bg-orange-100 transition-colors"
+                className="flex-1 py-3 text-[var(--color-warm-500)] font-bold hover:bg-[var(--color-warm-50)] rounded-xl transition-colors"
               >
                 ➕ 繼續上傳
               </button>
+              <div className="w-px bg-slate-200"></div>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 bg-gray-100 text-gray-600 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                className="flex-1 py-3 text-slate-400 font-bold hover:text-slate-600 hover:bg-slate-50 rounded-xl transition-colors"
               >
                 建立新的一單
               </button>

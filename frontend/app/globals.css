@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* RouteSnap Vitality Theme Palette */
+  
+  /* Aqua Energy (Primary) */
+  --color-aqua-50: #e0faff;
+  --color-aqua-100: #bbf3ff;
+  --color-aqua-200: #85ebff;
+  --color-aqua-300: #3bdefa;
+  --color-aqua-400: #2ad1e7; /* Brand Primary */
+  --color-aqua-500: #0ab6d4;
+  --color-aqua-600: #0492b0;
+  --color-aqua-700: #0a7690;
+  
+  /* Warm Glow (Secondary) */
+  --color-warm-50: #fff8eb;
+  --color-warm-100: #ffeed1;
+  --color-warm-200: #ffd8a8;
+  --color-warm-300: #ffbc75;
+  --color-warm-400: #ff9244; /* Brand Secondary */
+  --color-warm-500: #f77016;
+  --color-warm-600: #da520b;
+
+  /* Surface Colors */
+  --color-surface-bg: #F3F7FA;
+  --color-surface-card: #ffffff;
+  
+  --background: var(--color-surface-bg);
+  --foreground: #1e293b; /* Slate 800 */
 }
 
 @theme inline {
@@ -10,11 +35,33 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  /* Extend Palette */
+  --color-aqua-50: var(--color-aqua-50);
+  --color-aqua-100: var(--color-aqua-100);
+  --color-aqua-200: var(--color-aqua-200);
+  --color-aqua-300: var(--color-aqua-300);
+  --color-aqua-400: var(--color-aqua-400);
+  --color-aqua-500: var(--color-aqua-500);
+  --color-aqua-600: var(--color-aqua-600);
+  --color-aqua-700: var(--color-aqua-700);
+  
+  --color-warm-50: var(--color-warm-50);
+  --color-warm-100: var(--color-warm-100);
+  --color-warm-200: var(--color-warm-200);
+  --color-warm-300: var(--color-warm-300);
+  --color-warm-400: var(--color-warm-400);
+  --color-warm-500: var(--color-warm-500);
+  --color-warm-600: var(--color-warm-600);
+  
+  --color-surface-bg: var(--color-surface-bg);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    /* Keep light mode for now as requested design is light/fresh */
+    /* Eventually can map to dark variants */
+    --background: #0f172a;
     --foreground: #ededed;
   }
 }
@@ -23,4 +70,24 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Utilities for Soft UI */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.soft-shadow {
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+}
+
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:active {
+  transform: scale(0.98);
 }
