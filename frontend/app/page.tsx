@@ -567,8 +567,8 @@ export default function StoreAdmin() {
           </div>
         )}
 
-        {/* 狀態 1: 拍照區 */}
-        {!routeId && (
+        {/* 狀態 1: 拍照區 (僅在無訂單時顯示，有訂單後改用底部按鈕) */}
+        {!routeId && orders.length === 0 && (
           <div
             onClick={() => !loading && fileInputRef.current?.click()}
             className={`group relative overflow-hidden bg-white rounded-[20px] p-8 text-center shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-gray-100 transition-all active:scale-[0.98] ${loading ? 'opacity-80' : 'cursor-pointer'}`}
