@@ -13,6 +13,13 @@ export const metadata: Metadata = {
   description: "AI 自動辨識訂單，一鍵規劃最佳配送路線",
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
