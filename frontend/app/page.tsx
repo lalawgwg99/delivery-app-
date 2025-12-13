@@ -537,8 +537,8 @@ export default function StoreAdmin() {
       <header className="sticky top-0 z-50 bg-[var(--color-surface-bg)]/80 backdrop-blur-xl border-b border-gray-200/50 px-5 py-4 transition-all">
         <div className="flex items-center justify-between max-w-md mx-auto">
           <div className="flex flex-col">
-            <h1 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight">RouteSnap</h1>
-            <p className="text-[13px] font-medium text-blue-600">AI識別派單系統</p>
+            <h1 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight">AI RouteSnap</h1>
+            <p className="text-[13px] font-medium text-blue-600">派 單 系 統</p>
           </div>
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-2">
@@ -554,7 +554,7 @@ export default function StoreAdmin() {
               >
                 📋 歷史
               </a>
-              <span className="text-[13px] font-semibold bg-blue-100 text-blue-600 px-3 py-1 rounded-full">
+              <span className="text-[13px] font-semibold bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-600 px-3 py-1 rounded-full animate-pulse shadow-sm">
                 WG五甲
               </span>
             </div>
@@ -628,9 +628,9 @@ export default function StoreAdmin() {
               <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-100 transition-colors">
                 <Camera className="w-8 h-8 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">拍攝訂單</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">拍照</h3>
               <p className="text-gray-400 text-sm leading-relaxed">
-                開啟相機或上傳圖片<br />支援批量上傳 2-15 張<br />AI 自動辨識地址並排序
+                開啟相機或上傳圖片<br />支援訂單批量上傳 <br />AI 自動辨識資料內容
               </p>
             </div>
             <input
@@ -650,7 +650,7 @@ export default function StoreAdmin() {
           <div className="mt-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
             <div className="flex items-center gap-2 mb-4 px-2">
               <Info className="w-4 h-4 text-blue-500" />
-              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">使用說明</h3>
+              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest"> </h3>
             </div>
 
             <div className="grid gap-4">
