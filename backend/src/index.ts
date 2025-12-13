@@ -75,17 +75,18 @@ app.post('/api/analyze', async (c) => {
       - 分析上述提取的商品名稱與地址，計算以下欄位：
 
       **A. install_time_estimate (預估工時，單位：分鐘，Number)**
-        - 基礎時間：15 分鐘
+        - 基礎時間：30 分鐘
         - 加時規則 (累加)：
           - 若包含「滾筒洗衣機」或「洗脫烘」：+20 分鐘
-          - 若包含「冷氣」或「空調」：+15 分鐘
-          - 若包含「回收」或「舊機」：+10 分鐘
-          - 若地址包含「3F」「4F」「5F」或更高樓層且無「電梯」字樣：+15 分鐘
-        - 回傳計算後的總分鐘數。若無特殊項目，回傳 15。
+          - 若包含「冷氣」或「空調」或「分離式」：+150 分鐘
+          - 若包含「回收」或「舊機」：+15 分鐘
+          - 若地址包含「3F」「4F」「5F」或更高樓層且無「電梯」字樣：+20 分鐘
+        - 回傳計算後的總分鐘數。若無特殊項目，回傳 30。
 
       **B. high_value_item (高價品偵測，Boolean)**
-        - 若商品名稱包含以下任一關鍵字，回傳 true：
-          「OLED」、「QLED」、「75型」、「75吋」、「85型」、「旗艦」、「對開冰箱」、「Side-by-Side」
+        - 若符合以下任一條件，回傳 true：
+          - 商品名稱包含：「OLED」、「QLED」、「75型」、「75吋」、「85型」、「旗艦」、「對開冰箱」、「Side-by-Side」
+          - 商品金額超過 20,000 元
         - 否則回傳 false。
 
       **C. tags (貨物標籤，Array)**
@@ -101,7 +102,7 @@ app.post('/api/analyze', async (c) => {
       - 一旦提取完商品和備註，請立刻停止，不要往下讀取底部的公司資訊或個資聲明。
 
       請直接回傳純 JSON 格式，不要 Markdown。
-      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "...", "orderNumber": "...", "invoiceNumber": "...", "note": "...", "tags": ["tv_fragile"], "install_time_estimate": 35, "high_value_item": false } ] }`;
+      格式: { "orders": [ { "customer": "...", "phone": "...", "address": "...", "delivery_time": "...", "items": "...", "orderNumber": "...", "invoiceNumber": "...", "note": "...", "tags": ["tv_fragile"], "install_time_estimate": 50, "high_value_item": false } ] }`;
 
 		const result = await model.generateContent([
 			prompt,
