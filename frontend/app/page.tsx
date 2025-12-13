@@ -537,8 +537,8 @@ export default function StoreAdmin() {
       <header className="sticky top-0 z-50 bg-[var(--color-surface-bg)]/80 backdrop-blur-xl border-b border-gray-200/50 px-5 py-4 transition-all">
         <div className="flex items-center justify-between max-w-md mx-auto">
           <div className="flex flex-col">
-            <h1 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight">AI RouteSnap</h1>
-            <p className="text-[13px] font-medium text-blue-600">派 單 系 統</p>
+            <h1 className="text-[20px] font-bold text-gray-900 tracking-tight leading-tight">AI Image </h1>
+            <p className="text-[13px] font-medium text-blue-600">Recognition</p>
           </div>
           <div className="flex flex-col items-end gap-1">
             <div className="flex items-center gap-2">
