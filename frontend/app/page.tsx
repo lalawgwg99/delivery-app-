@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea
 import { compressImage } from '../utils/image-compression';
 import { saveToDB, getFromDB, deleteFromDB } from '../utils/db';
 import CanvasBackground from '../components/CanvasBackground';
+import WeatherWidget from '../components/WeatherWidget';
 import { playClickSound, playSuccessSound } from '../utils/sound';
 
 // 解決 Next.js 在 Strict Mode 下與拖曳套件的兼容性問題
@@ -653,60 +654,22 @@ export default function StoreAdmin() {
             </div>
 
             <div className="grid gap-4">
-              {/* 步驟 1: 拍照 */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0 text-blue-600">
-                  <Camera className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">1. 拍攝訂單</h4>
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    點擊上方相機圖示，一次可選 <span className="text-blue-600 font-bold">2-15 張</span> 照片。AI 會自動辨識地址並排序。
-                  </p>
-                </div>
-              </div>
-
-              {/* 步驟 2: 編輯 */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0 text-purple-600">
-                  <ListOrdered className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">2. 確認與排序</h4>
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    檢查辨識結果，長按卡片可<span className="text-purple-600 font-bold">拖曳排序</span>。確認無誤後點擊生成連結。
-                  </p>
-                </div>
-              </div>
-
-              {/* 步驟 3: 分享 */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0 text-green-600">
-                  <Send className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900 mb-1">3. 分享派單</h4>
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    將連結傳給外送員 (LINE)，他們即可透過手機導航並回報進度。
-                  </p>
-                </div>
-              </div>
+              {/* 天氣提醒 */}
+              <WeatherWidget />
 
               {/* GitHub 連結 */}
               <a
                 href="https://github.com/lalawgwg99/delivery-app-"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer mt-2"
+                className="bg-white p-4 rounded-2xl border border-gray-100 soft-shadow flex items-center gap-4 hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center flex-shrink-0 text-white">
                   <Github className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-gray-900 mb-1">GitHub 開源專案</h4>
-                  <p className="text-sm text-gray-500 leading-relaxed">
-                    查看原始碼與說明文件
-                  </p>
+                  <h4 className="font-bold text-gray-900">GitHub 開源專案</h4>
+                  <p className="text-sm text-gray-500">查看原始碼與說明文件</p>
                 </div>
               </a>
             </div>
