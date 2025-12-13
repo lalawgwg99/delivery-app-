@@ -1,6 +1,6 @@
-# RouteSnap 外送派單規劃系統 (Enterprise Edition)
+# 外送派單規劃系統
 
-> 🚀 **穩定的企業級外送派單系統：一鍵拍照，AI 自動辨識訂單並規劃最佳配送路線**
+> 🚀 **穩定的外送派單系統：一鍵拍照，AI 自動辨識訂單並規劃最佳配送路線**
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
@@ -9,7 +9,7 @@
 
 ## 📖 專案簡介 (v2.0 穩定版)
 
-一個專為配送設計的**企業級**智慧路徑規劃系統。透過 AI 圖像識別技術，自動從外送單照片中提取訂單資訊。
+一個專為配送設計的智慧規劃系統。透過 AI 圖像識別技術，自動從外送單照片中提取訂單資訊。
 本版本重點強化了**大量上傳的穩定性**與**數據安全性**，確保在外送員與店家的繁忙操作中零失誤。
 
 ## 📲 安裝到手機 (iPhone/Android)
@@ -21,7 +21,7 @@
 3. 選擇 **「加入主畫面」 (Add to Home Screen)**
 4. 回到桌面即可看到 App 圖示 ✨
 
-## ✨ 核心特點 (企業級強化)
+## ✨ 核心特點 
 
 ### 🛡️ 極致穩定 (Stability)
 
