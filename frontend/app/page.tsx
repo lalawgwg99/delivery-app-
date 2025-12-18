@@ -90,7 +90,6 @@ export default function StoreAdmin() {
 
 
   // 批量上傳處理
-  // 批量上傳處理
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
@@ -515,12 +514,10 @@ export default function StoreAdmin() {
       setFailedUploads([]); // 清除失敗紀錄
       setLoading(false);
       setProcessingIndex(-1);
-      setProcessingIndex(-1);
       // 清除 IndexedDB
       deleteFromDB(STORAGE_KEY);
       // 清除 LocalStorage (Legacy)
       localStorage.removeItem(STORAGE_KEY);
-      // 清除檔案輸入
       // 清除檔案輸入
       if (fileInputRef.current) {
         fileInputRef.current.value = '';

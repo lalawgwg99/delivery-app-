@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, Suspense, useRef } from 'react';
-import { MapPin, CheckCircle, Navigation, Phone, FileText, X, Camera, Image as ImageIcon, Loader2, Check } from 'lucide-react';
+import { MapPin, CheckCircle, Navigation, Phone, FileText, X, Camera, Loader2 } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { compressImage } from '../../utils/image-compression';
 import CanvasBackground from '../../components/CanvasBackground';
@@ -158,7 +158,7 @@ function DriverContent() {
             } else {
                 alert('尚無送達照片');
             }
-        } catch (e) {
+        } catch (_) {
             alert('載入照片失敗');
         }
     };
