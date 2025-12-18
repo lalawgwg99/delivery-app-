@@ -355,9 +355,14 @@ function DriverContent() {
                             {/* 商品資訊 */}
                             {order.items && (
                                 <div className="bg-blue-50 px-3 py-2 rounded-lg mb-3">
-                                    <p className="text-sm font-medium text-blue-900">
-                                        📦 {order.items}
-                                    </p>
+                                    <div className="text-sm font-medium text-blue-900 space-y-1">
+                                        {order.items.split(',').map((item: string, idx: number) => (
+                                            <div key={idx} className="flex items-start gap-2">
+                                                <span className="text-blue-400 mt-0.5">📦</span>
+                                                <span>{item.trim()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
 
