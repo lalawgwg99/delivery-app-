@@ -89,19 +89,18 @@ export default function StoreAdmin() {
 
 
 
-  // 批量上傳處理
+  // 批量上傳處理 (Limited Concurrency: Max 3)
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    if (files.length > 15) {
-      alert('最多只能上傳 15 張圖片');
+    if (files.length > 50) { // Relaxed limit for paid plan, but still sane
+      alert('單次上傳建議不超過 50 張');
       return;
     }
 
     setUploadQueue(files);
     setLoading(true);
 
-    const newOrders: any[] = [];
     let successCount = 0;
     let failCount = 0;
     const errorDetails: string[] = [];
@@ -111,14 +110,12 @@ export default function StoreAdmin() {
       try {
         const res = await fetch(url, options);
         if (!res.ok) {
-          // 如果是 5xx 錯誤，拋出異常以觸發重試
           if (res.status >= 500) throw new Error(`HTTP Error ${res.status}`);
-          return res; // 4xx 錯誤直接回傳 (如圖片格式錯誤)
+          return res;
         }
         return res;
       } catch (err) {
         if (retries > 0) {
-          console.warn(`Retrying... (${retries} attempts left)`);
           await new Promise(resolve => setTimeout(resolve, delay));
           return fetchWithRetry(url, options, retries - 1, delay * 2);
         } else {
@@ -127,34 +124,28 @@ export default function StoreAdmin() {
       }
     };
 
-    // 順序處理每張圖片
-    for (const file of files) {
-      // 更新處理進度 (使用 index)
+    // Single file process function
+    const processFile = async (file: File) => {
       const currentIndex = files.indexOf(file);
-      setProcessingIndex(currentIndex);
-
-      // CRITICAL: 讓出主線程，避免 UI 凍結 (特別是手機)
-      await new Promise(r => setTimeout(r, 100));
-
-      // 1. 執行壓縮
-      let processedFile = file;
-      try {
-        processedFile = await compressImage(file);
-      } catch (e) {
-        console.error('Compression failed, using original file', e);
-      }
-
-      const formData = new FormData();
-      formData.append('image', processedFile);
+      // We don't setProcessingIndex(currentIndex) purely here because it jumps around in parallel.
+      // Instead we might just show "Processing X / Y" in UI if wanted, or just loading.
 
       try {
-        // 使用 retry 機制呼叫 API
+        let processedFile = file;
+        try {
+          processedFile = await compressImage(file);
+        } catch (e) {
+          console.error('Compression failed, using original file', e);
+        }
+
+        const formData = new FormData();
+        formData.append('image', processedFile);
+
         const res = await fetchWithRetry(`${API_URL}/api/analyze`, { method: 'POST', body: formData });
-
         let json;
         try {
           json = await res.json();
-        } catch (_) { // Fix lint: unused var
+        } catch (_) {
           throw new Error('Invalid JSON response');
         }
 
@@ -164,44 +155,67 @@ export default function StoreAdmin() {
             id: `item-${Date.now()}-${currentIndex}-${idx}`,
             sourceImage: file.name
           }));
-          newOrders.push(...ordersWithId);
-          // successCount is purely for logging/stats now, and we are using it
+
+          // Real-time update to UI
+          setOrders(prev => [...prev, ...ordersWithId]);
           successCount++;
         } else {
           console.error(`圖片 ${file.name} 辨識失敗:`, json.error);
           failCount++;
           errorDetails.push(`${file.name}: ${json.error || 'Unknown error'}`);
-          // 加入失敗清單
           setFailedUploads(prev => [...prev, { file, error: json.error || 'Unknown error' }]);
         }
       } catch (err: any) {
         console.error(`圖片 ${file.name} 上傳錯誤:`, err);
         failCount++;
         errorDetails.push(`${file.name}: ${err.message || 'Network/Server error'}`);
-        // 加入失敗清單
         setFailedUploads(prev => [...prev, { file, error: err.message || 'Network error' }]);
       }
+    };
+
+    // Concurrency Control
+    const CONCURRENCY_LIMIT = 3;
+    const queue = [...files];
+    const activePromises: Promise<void>[] = [];
+
+    const processNext = async (): Promise<void> => {
+      if (queue.length === 0) return;
+      const file = queue.shift();
+      if (!file) return;
+
+      const promise = processFile(file).finally(() => {
+        // Remove self from activePromises
+        activePromises.splice(activePromises.indexOf(promise), 1);
+      });
+      activePromises.push(promise);
+
+      // If we have capacity and more in queue, start another
+      if (queue.length > 0 && activePromises.length < CONCURRENCY_LIMIT) {
+        await processNext();
+      }
+
+      // Wait for at least one to finish before maybe picking up more (standard recursion would just be: await promise; processNext();)
+      // Actually, simple pool pattern:
+      await promise;
+      return processNext();
+    };
+
+    // Initial fill of the pool
+    const initialPool = [];
+    for (let i = 0; i < Math.min(CONCURRENCY_LIMIT, files.length); i++) {
+      initialPool.push(processNext());
     }
 
-    // 追加到現有訂單（而非取代）
-    setOrders(prevOrders => [...prevOrders, ...newOrders]);
+    await Promise.all(initialPool);
+
     setLoading(false);
     setProcessingIndex(-1);
     setUploadQueue([]);
 
-    // 顯示結果摘要 (如果有失敗，且沒有顯示失敗重試區塊時才跳窗，但這裡我們總是有重試區塊，所以可以簡化報告)
     if (failCount > 0) {
-      // 選擇不跳煩人的 alert，因為我們會顯示 "失敗項目" 區塊讓用戶重試
       console.log(`Upload completed with ${failCount} failures.`);
     } else {
       console.log('Batch upload completed successfully');
-      // 成功後清除失敗紀錄 (如果是乾淨的上傳)
-      // 如果這次是重試，我們不清除之前的（除非重試與之前無關，這裡假設每次 handleUpload 都是新的一批或重試）
-      // 因為 handleUpload 接收 files 參數，如果是新上傳，則不影響舊的 failedUploads 除非我們想合併
-      // 這裡簡化邏輯：如果是手動上傳新檔案，保留舊的失敗紀錄是合理的嗎？
-      // 通常上傳新檔案時，舊的失敗檔案如果還沒重試，應該還是在那裡比較好。
-      /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-      const _unused = successCount; // keep logic but make linter happy or just remove it if really unused
     }
   };
 
