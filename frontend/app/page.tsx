@@ -752,14 +752,14 @@ export default function StoreAdmin() {
 
                                 {/* 商品明細編輯 */}
                                 <div className="pt-2">
-                                  <div className="flex items-start gap-2 bg-[var(--color-surface-bg)] rounded-xl p-3 border border-dashed border-gray-200">
-                                    <Package className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                                  <div className="bg-blue-50 px-3 py-2 rounded-lg mb-3 flex items-start gap-2">
+                                    <Package className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
                                     <textarea
                                       value={order.items || ''}
                                       placeholder="商品名稱與數量..."
                                       rows={2}
                                       onChange={(e) => updateOrder(index, 'items', e.target.value)}
-                                      className="block w-full text-[14px] leading-relaxed text-slate-700 bg-transparent border-none focus:ring-0 p-0 resize-none placeholder-slate-400"
+                                      className="block w-full text-sm font-medium text-blue-900 bg-transparent border-none focus:ring-0 p-0 resize-none placeholder-blue-300"
                                     />
                                   </div>
                                 </div>
@@ -801,7 +801,7 @@ export default function StoreAdmin() {
                                   )}
                                   {order.tags && order.tags.includes('recycle_required') && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-green-50 text-green-700 border border-green-200">
-                                      ♻️ 需回收
+                                      ♻️ 可能需要回收
                                     </span>
                                   )}
                                   {order.tags && order.tags.includes('washer_install') && (

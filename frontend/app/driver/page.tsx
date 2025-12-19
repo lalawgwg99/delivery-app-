@@ -347,7 +347,7 @@ function DriverContent() {
                                 )}
                                 {order.tags?.includes('recycle_required') && (
                                     <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-green-50 text-green-700 border border-green-200">
-                                        ♻️ 需回收
+                                        ♻️ 可能需要回收
                                     </span>
                                 )}
                             </div>

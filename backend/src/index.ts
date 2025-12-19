@@ -95,7 +95,7 @@ app.post('/api/analyze', async (c) => {
           - 冰箱 -> 'fridge_upright'
           - 洗衣機 -> 'washer_install'
           - 冷氣 -> 'ac_heavy'
-          - 回收服務 -> 'recycle_required'
+          - 冰箱、冷氣、洗衣機、或回收服務 -> 'recycle_required'
 
       **【重要：排除區域】**
       - **嚴格忽略**：商品列表下方的「注意事項」、「Note」、「消費者簽名」、「廢四機回收」等法律條文或長篇文字。
