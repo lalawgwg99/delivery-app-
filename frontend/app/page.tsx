@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, FileText, Github } from 'lucide-react';
+import { Camera, Share2, Loader2, GripVertical, X, MapPin, Image as ImageIcon, Info, ListOrdered, Send, FileText, Github, Package } from 'lucide-react';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { compressImage } from '../utils/image-compression';
 import { saveToDB, getFromDB, deleteFromDB } from '../utils/db';
@@ -746,6 +746,20 @@ export default function StoreAdmin() {
                                       rows={2}
                                       onChange={(e) => updateOrder(index, 'address', e.target.value)}
                                       className="block w-full text-[14px] leading-relaxed text-slate-600 bg-transparent border-none focus:ring-0 p-0 resize-none placeholder-slate-400"
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* 商品明細編輯 */}
+                                <div className="pt-2">
+                                  <div className="flex items-start gap-2 bg-[var(--color-surface-bg)] rounded-xl p-3 border border-dashed border-gray-200">
+                                    <Package className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                                    <textarea
+                                      value={order.items || ''}
+                                      placeholder="商品名稱與數量..."
+                                      rows={2}
+                                      onChange={(e) => updateOrder(index, 'items', e.target.value)}
+                                      className="block w-full text-[14px] leading-relaxed text-slate-700 bg-transparent border-none focus:ring-0 p-0 resize-none placeholder-slate-400"
                                     />
                                   </div>
                                 </div>
