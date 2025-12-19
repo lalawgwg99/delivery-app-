@@ -335,11 +335,7 @@ function DriverContent() {
                                         ❄️ 直立搬運
                                     </span>
                                 )}
-                                {order.tags?.includes('washer_install') && (
-                                    <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                        🛠️ 需安裝
-                                    </span>
-                                )}
+
                                 {order.tags?.includes('ac_heavy') && (
                                     <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200">
                                         🔋 冷氣重物

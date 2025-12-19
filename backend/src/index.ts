@@ -93,7 +93,6 @@ app.post('/api/analyze', async (c) => {
         - 分析商品名稱，回傳相關標籤：
           - TV/螢幕 -> 'tv_fragile'
           - 冰箱 -> 'fridge_upright'
-          - 洗衣機 -> 'washer_install'
           - 冷氣 -> 'ac_heavy'
           - 冰箱、冷氣、洗衣機、或回收服務 -> 'recycle_required'
 

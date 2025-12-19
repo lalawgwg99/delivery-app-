@@ -809,11 +809,7 @@ export default function StoreAdmin() {
                                       🚗 較遠路程
                                     </span>
                                   )}
-                                  {order.tags && order.tags.includes('washer_install') && (
-                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                      🛠️ 需安裝
-                                    </span>
-                                  )}
+
                                   {order.tags && order.tags.includes('ac_heavy') && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200">
                                       🔋 室外機
