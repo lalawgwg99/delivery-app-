@@ -804,6 +804,11 @@ export default function StoreAdmin() {
                                       ♻️ 可能需要回收
                                     </span>
                                   )}
+                                  {order.tags && order.tags.includes('remote_area') && (
+                                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                                      🚗 較遠路程
+                                    </span>
+                                  )}
                                   {order.tags && order.tags.includes('washer_install') && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
                                       🛠️ 需安裝

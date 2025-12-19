@@ -350,6 +350,11 @@ function DriverContent() {
                                         ♻️ 可能需要回收
                                     </span>
                                 )}
+                                {order.tags?.includes('remote_area') && (
+                                    <span className="inline-flex items-center px-2 py-1 rounded-lg text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
+                                        🚗 較遠路程
+                                    </span>
+                                )}
                             </div>
 
                             {/* 商品資訊 */}
