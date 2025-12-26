@@ -14,6 +14,8 @@ function DriverContent() {
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewingImage, setViewingImage] = useState<string | null>(null);
+    const [imageLoadError, setImageLoadError] = useState(false);
+    const [imageLoading, setImageLoading] = useState(false);
     const [uploadingStates, setUploadingStates] = useState<Record<number, boolean>>({});
     const [viewingDeliveryPhotos, setViewingDeliveryPhotos] = useState<{ orderIndex: number; photos: string[] } | null>(null);
     const fileInputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -475,27 +477,68 @@ function DriverContent() {
             {viewingImage && (
                 <div
                     className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 animate-in fade-in duration-200"
-                    onClick={() => setViewingImage(null)}
+                    onClick={() => {
+                        setViewingImage(null);
+                        setImageLoadError(false);
+                        setImageLoading(false);
+                    }}
                 >
                     <div className="relative max-w-4xl w-full bg-white rounded-2xl p-4 animate-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
                         <button
-                            onClick={() => setViewingImage(null)}
+                            onClick={() => {
+                                setViewingImage(null);
+                                setImageLoadError(false);
+                                setImageLoading(false);
+                            }}
                             className="absolute top-2 right-2 bg-gray-900/80 text-white p-2 rounded-full hover:bg-gray-900 transition-colors z-10"
                         >
                             <X className="w-5 h-5" />
                         </button>
                         <div className="text-center">
                             <h3 className="text-lg font-bold text-gray-900 mb-4">外送單原圖</h3>
-                            <div className="bg-gray-100 rounded-xl overflow-hidden">
-                                <img
-                                    src={`${API_URL}/api/image/${viewingImage}`}
-                                    alt="外送單原圖"
-                                    className="w-full h-auto max-h-[70vh] object-contain"
-                                    onError={(e) => {
-                                        e.currentTarget.src = '';
-                                        e.currentTarget.alt = '圖片載入失敗';
-                                    }}
-                                />
+                            <div className="bg-gray-100 rounded-xl overflow-hidden min-h-[300px] flex items-center justify-center">
+                                {imageLoadError ? (
+                                    <div className="flex flex-col items-center gap-3 p-8">
+                                        <div className="text-6xl">📸</div>
+                                        <p className="text-gray-600 font-medium">圖片載入失敗</p>
+                                        <p className="text-sm text-gray-400">可能原因: 網路不穩定或圖片已過期</p>
+                                        <button
+                                            onClick={() => {
+                                                setImageLoadError(false);
+                                                setImageLoading(true);
+                                                // 強制重新載入
+                                                const img = document.getElementById('delivery-order-image') as HTMLImageElement;
+                                                if (img) {
+                                                    img.src = `${API_URL}/api/image/${viewingImage}?t=${Date.now()}`;
+                                                }
+                                            }}
+                                            className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 active:scale-95 transition-all"
+                                        >
+                                            重新載入
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {imageLoading && (
+                                            <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+                                                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                                            </div>
+                                        )}
+                                        <img
+                                            id="delivery-order-image"
+                                            src={`${API_URL}/api/image/${viewingImage}`}
+                                            alt="外送單原圖"
+                                            className="w-full h-auto max-h-[70vh] object-contain"
+                                            onLoad={() => setImageLoading(false)}
+                                            onLoadStart={() => setImageLoading(true)}
+                                            onError={() => {
+                                                console.error('Image load failed:', viewingImage);
+                                                setImageLoading(false);
+                                                setImageLoadError(true);
+                                            }}
+                                        />
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
