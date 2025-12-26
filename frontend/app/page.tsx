@@ -34,14 +34,23 @@ export default function StoreAdmin() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://routesnap-backend.lalawgwg99.workers.dev';
   const STORAGE_KEY = 'routesnap_draft_orders'; // LocalStorage key
 
-  // LocalStorage 暫存：自動儲存 (遷移到 IndexedDB)
+  // LocalStorage 暫存:自動儲存 (遷移到 IndexedDB)
   useEffect(() => {
     const loadDrafts = async () => {
       try {
         const saved = await getFromDB(STORAGE_KEY);
         if (saved && Array.isArray(saved) && saved.length > 0) {
-          setOrders(saved);
-          console.log('Restored drafts from IndexedDB');
+          // 清理可能過期的 draft_ imageKey (24h TTL)
+          const cleanedOrders = saved.map(order => {
+            if (order.imageKey && typeof order.imageKey === 'string' && order.imageKey.startsWith('draft_')) {
+              // draft_ key 有 24h 過期時間,恢復時移除以避免 404
+              const { imageKey, ...rest } = order;
+              return rest;
+            }
+            return order;
+          });
+          setOrders(cleanedOrders);
+          console.log('Restored drafts from IndexedDB (cleaned expired keys)');
         } else {
           // Fallback: Check LocalStorage (migration path)
           const lsSaved = localStorage.getItem(STORAGE_KEY);
@@ -49,8 +58,16 @@ export default function StoreAdmin() {
             try {
               const parsed = JSON.parse(lsSaved);
               if (Array.isArray(parsed) && parsed.length > 0) {
-                setOrders(parsed);
-                console.log('Restored drafts from Legacy LocalStorage');
+                // 同樣清理 draft_ key
+                const cleanedOrders = parsed.map(order => {
+                  if (order.imageKey && typeof order.imageKey === 'string' && order.imageKey.startsWith('draft_')) {
+                    const { imageKey, ...rest } = order;
+                    return rest;
+                  }
+                  return order;
+                });
+                setOrders(cleanedOrders);
+                console.log('Restored drafts from Legacy LocalStorage (cleaned expired keys)');
               }
             } catch (e) { console.error(e); }
           }

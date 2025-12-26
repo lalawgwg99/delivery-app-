@@ -27,6 +27,15 @@ app.post('/api/analyze', async (c) => {
 			return c.json({ success: false, error: 'No image uploaded' }, 400);
 		}
 
+		// 圖片大小驗證 (防止濫用,保護 KV 配額)
+		const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+		if (image.size > MAX_IMAGE_SIZE) {
+			return c.json({
+				success: false,
+				error: '圖片過大,請壓縮後重試 (限制 10MB)'
+			}, 400);
+		}
+
 		console.log('📸 Image received:', image.name, image.type, image.size, 'bytes');
 
 		// 設定 Gemini，啟用 JSON 模式
@@ -192,12 +201,12 @@ app.post('/api/create-route', async (c) => {
 		for (let i = 0; i < body.orders.length; i++) {
 			const order = body.orders[i];
 
-			// 新邏輯：從 Draft KV 轉存到永久 KV
+			// 新邏輯:從 Draft KV 轉存到永久 KV
 			if (order.imageKey) {
 				// 1. 嘗試讀取暫存圖片
 				let imageData = await c.env.ORDERS_DB.get(order.imageKey);
 
-				// 如果找不到 (可能過期)，嘗試看是否直接傳了 base64 (兼容舊版/備援)
+				// 如果找不到 (可能過期),嘗試看是否直接傳了 base64 (兼容舊版/備援)
 				if (!imageData && order.sourceImageData) {
 					imageData = order.sourceImageData;
 				}
@@ -209,17 +218,23 @@ app.post('/api/create-route', async (c) => {
 					// 3. 存入永久 KV
 					await c.env.ORDERS_DB.put(permanentKey, imageData);
 
-					// 4. 更新訂單資訊，指向永久 Key
+					// 4. 更新訂單資訊,指向永久 Key
 					body.orders[i] = {
 						...order,
 						imageKey: permanentKey,
 						sourceImageData: undefined // 確保移除大檔
 					};
 				} else {
-					console.warn(`Image data not found for draft key: ${order.imageKey}`);
+					// 圖片數據丟失(可能過期或Key無效),記錄錯誤並移除 imageKey
+					console.error(`Image data not found for draft key: ${order.imageKey} (likely expired or invalid)`);
+					body.orders[i] = {
+						...order,
+						imageKey: undefined, // 清除無效 key,避免司機端 404
+						sourceImageData: undefined
+					};
 				}
 			}
-			// 舊邏輯兼容：如果前端直接傳 base64 (不太可能，但保留相容性)
+			// 舊邏輯兼容:如果前端直接傳 base64 (不太可能,但保留相容性)
 			else if (order.sourceImageData) {
 				const imageKey = `img_${routeId}_${i}`;
 				await c.env.ORDERS_DB.put(imageKey, order.sourceImageData);
